@@ -15,6 +15,5 @@ Professor orientador:
   <li>Marcus Bretas</li>
 <ul>
 
-O nosso projeto consiste em uma plataforma virtual de comunicação entre nutricionista e paciente, onde o nutricionista poderia 
-
+O nosso projeto consiste em um ambiente digital que conecta o nutricionista e paciente. O projeto surge como uma resposta ao aumento na procura por profissionais na área, com a intenção de agilizar o trabalho do nutricionista ao deixar as informações e contato do paciente mais acessíveis e de facilitar a rotina do paciente, ao permitir que ele tenha um acesso mais direto e fácil à sua rotina alimentar e seu acompanhamento com o nutricionista.
 
