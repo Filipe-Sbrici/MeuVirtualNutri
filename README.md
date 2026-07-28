@@ -1,4 +1,5 @@
-<h1 align=center> MeuVirtualNutri </h1>
+<h1 align=center> MeuVirtualNutri </h1><img width="610" height="638" alt="LogoMVN" src="https://github.com/user-attachments/assets/0c38a0ef-613a-4e66-9ee0-f6e7a44bc0fd" />
+
 
 Esse, trata-se de um trabalho de conclusão de curso dos alunos 3°Ano de desenvolvimento de sistemas, turma A, da Etec Euro Albino de Souza. <p>
 Alunos responsáveis pelo projeto:
@@ -9,11 +10,9 @@ Alunos responsáveis pelo projeto:
   <li>Isaque Machado</li>
   <li>João Vitor Daltio</li>
 </ul>
-<br>
 Professor orientador: 
 <ul>
   <li>Marcus Bretas</li>
-<ul>
+</ul>
 
-O nosso projeto consiste em um ambiente digital que conecta o nutricionista e paciente. O projeto surge como uma resposta ao aumento na procura por profissionais na área, com a intenção de agilizar o trabalho do nutricionista ao deixar as informações e contato do paciente mais acessíveis e de facilitar a rotina do paciente, ao permitir que ele tenha um acesso mais direto e fácil à sua rotina alimentar e seu acompanhamento com o nutricionista.
-
+<p>O nosso projeto consiste em um ambiente digital que conecta o nutricionista e paciente. O projeto surge como uma resposta ao aumento na procura por profissionais na área, com a intenção de agilizar o trabalho do nutricionista ao deixar as informações e contato do paciente mais acessíveis e de facilitar a rotina do paciente, ao permitir que ele tenha um acesso mais direto e fácil à sua rotina alimentar e seu acompanhamento com o nutricionista.</p>
