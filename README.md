@@ -1,4 +1,6 @@
-<h1 align=center> MeuVirtualNutri </h1><img width="610" height="638" alt="LogoMVN" src="https://github.com/user-attachments/assets/0c38a0ef-613a-4e66-9ee0-f6e7a44bc0fd" />
+<h1 align=center> 
+  MeuVirtualNutri 
+</h1>
 
 
 Esse, trata-se de um trabalho de conclusão de curso dos alunos 3°Ano de desenvolvimento de sistemas, turma A, da Etec Euro Albino de Souza. <p>
