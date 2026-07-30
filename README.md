@@ -18,11 +18,12 @@ Professor orientador:
 </ul>
 
 ---
+<h2>Sobre o projeto</h2>
 
 <p>O Meu Virtual Nutri consiste em um ambiente digital que conecta o nutricionista e o paciente. O projeto surge como uma resposta ao aumento na procura por profissionais na área, com a intenção de agilizar o trabalho do nutricionista ao deixar as informações e contato do paciente mais acessíveis e de facilitar a rotina do paciente, ao permitir que ele tenha um acesso mais direto e fácil à sua rotina alimentar e seu acompanhamento com o nutricionista.</p>
 
 <p>
-Atualmente, o projeto acaba de sair da fase de prototipação para que possamos finalmente dar início à programação.
+Atualmente, o projeto acaba de sair da fase de prototipação indo agora para a programação.
 </p>
 
 ---
@@ -39,6 +40,11 @@ Atualmente, o projeto acaba de sair da fase de prototipação para que possamos 
     <li>Figma</li>
   </ul>
 </p>
+
+---
+<h2>Protótipo</h2>
+
+Foi desenvolvido um protótipo do projeto com o uso do *figma*, você pode acessa-lo por esse [link](https://www.figma.com/make/gLCupjo0KZUrHNLI9NHuNC/Nutri-App-Prototype-Review?t=8PYzrXKlGeDvwSM1-1&preview-route=%2Ftutorial), ou acessar a [página da wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Prototipagem) com imagens e descrição das telas.
 
 ---
 
