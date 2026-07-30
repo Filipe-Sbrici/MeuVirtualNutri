@@ -41,6 +41,11 @@ Atualmente, o projeto acaba de sair da fase de prototipação, mais informaçõe
 
 <h2>Sobre nós</h2>
 
+<p>
+  
+  Somos alunos do curso de desenvolvimento de sistemas integrado ao ensino médio da *Etec Euro Albino de Souza*, o ***Meu Virtual Nutri*** trata-se do nosso trabalho de conclusão de curso.
+</p>
+
 **Alunos responsáveis pelo projeto:**
 <ul>
   <li> Emilly Christinny</li>
@@ -85,6 +90,6 @@ Foi desenvolvido um protótipo do projeto com o uso do *figma*, você pode acess
 
 <h5 align=center>
   
-Para mais informações, acessar a [wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki)
+Para mais informações sobre o projeto, acessar a [wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki)
 </h5>
 
