@@ -1,5 +1,7 @@
-<h1 align=center> MeuVirtualNutri </h1>
-<h4 align=center> 
+<h1> MeuVirtualNutri 
+<img width="40.66" height="42.53" align=left alt="logo MVN" src="https://github.com/user-attachments/assets/cfc99f53-b953-4dce-9906-8cd905dc4592" />
+</h1>
+<h4> 
   
   *Uma alimentação mais saudável para todos*
 </h4>
