@@ -34,37 +34,41 @@ O sistema foi desenhado separando a jornada em dois perfis principais:
 </p>
 
 <p>
-Atualmente, o projeto acaba de sair da fase de prototipação, mais informações serão adicionadas à documentação conforme novas etapas do projeto sejam concluídas.
+  <b>Status:</b> <i>Fase de Desenvolvimento de Código (Pós-Prototipação)</i>
 </p>
+<p>
+  O projeto concluiu com sucesso a etapa de modelagem de requisitos, arquitetura de banco de dados e a prototipagem de alta fidelidade (com testes formais de usabilidade/UI/UX). Atualmente, a equipe encontra-se na fase de implementação das telas e integração com a API REST e o banco de dados. Novas atualizações serão documentadas conforme o avanço das sprints.
+</p>
+
 
 ---
 
 <h2>Sobre nós</h2>
 
 <p>
-  
-  Somos alunos do curso de desenvolvimento de sistemas integrado ao ensino médio da *Etec Euro Albino de Souza*, o ***Meu Virtual Nutri*** trata-se do nosso trabalho de conclusão de curso.
+  Este software é desenvolvido como <b>Trabalho de Conclusão de Curso (TCC)</b> do curso de Ensino Médio Integrado ao Técnico em Desenvolvimento de Sistemas na <b>ETEC Euro Albino de Souza</b> (Mogi Guaçu / SP).
 </p>
 
-**Alunos responsáveis pelo projeto:**
+<h4> Alunos Responsáveis:</h4>
 <ul>
-  <li> Emilly Christinny</li>
-  <li>Filipe Sbrici</li>
-  <li>Gabriel Ferrareiz</li>
+  <li>Emilly Christinny Alves de Jesus</li>
+  <li>Filipe Soares Sbrici</li>
+  <li>Gabriel Ferrareiz da Costa</li>
   <li>Isaque Machado</li>
   <li>João Vitor Daltio</li>
 </ul>
 
-**Professores Orientadores:**
+<h4> Professores Orientadores:</h4>
 <ul>
-  <li>Marcus Bretas</li>
-  <li>Pedro Amalfi</li>
+  <li>Prof. Marcus Bretas</li>
+  <li>Prof. Pedro Amalfi</li>
 </ul>
 
 ---
 
 <h2>Tecnologias</h2>
 
+<p>O projeto utiliza uma arquitetura moderna voltada para desempenho móvel e escalabilidade em nuvem:</p>
 <p>
   
   **Recursos utilizados:**
@@ -84,12 +88,30 @@ Para mais informações acesse a página de [levantamento de requisitos](https:/
 ---
 <h2>Protótipo</h2>
 
-Foi desenvolvido um protótipo do projeto com o uso do *figma*, você pode acessar e testa-lo por meio desse [link](https://www.figma.com/make/gLCupjo0KZUrHNLI9NHuNC/Nutri-App-Prototype-Review?t=8PYzrXKlGeDvwSM1-1&preview-route=%2Ftutorial), ou acessar a [página da wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Prototipagem), que conta com imagens da tela e descrições detalhadas sobre o objetivo de cada uma delas.
+<p>
+  O protótipo navegável de alta fidelidade do projeto foi inteiramente desenhado no Figma. Você pode interagir com as telas e testar os fluxos do Nutricionista e do Paciente:
+</p>
+
+<ul>
+  <li> <b>Link Direto do Figma:</b> <a href="https://www.figma.com/make/gLCupjo0KZUrHNLI9NHuNC/Nutri-App-Prototype-Review?t=8PYzrXKlGeDvwSM1-1&preview-route=%2Ftutorial">Acessar Protótipo Interativo no Figma</a></li>
+  <li> <b>Documentação do Protótipo:</b> <a href="https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Prototipagem">Página de Prototipagem na Wiki</a> (contém imagens e descrição detalhada do objetivo de cada tela).</li>
+</ul>
 
 <h1></h1>
 
-<h5 align=center>
-  
-Para mais informações sobre o projeto, acessar a [wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki)
+<h2 id="wiki"> Wiki do Projeto</h2>
+
+<p>
+  Toda a documentação técnica, atas de reuniões, levantamento de requisitos, diagramas UML, modelagem de banco de dados e relatórios de testes de usabilidade estão centralizados na Wiki oficial do repositório:
+</p>
+
+<p align="center">
+   <b><a href="https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki">Acessar a Wiki Oficial do Projeto no GitHub</a></b> 
+</p>
+
+<h1></h1>
+
+<h5 align="center">
+  Meu Virtual Nutri • ETEC Euro Albino de Souza
 </h5>
 
