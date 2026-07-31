@@ -83,7 +83,7 @@ O sistema foi desenhado separando a jornada em dois perfis principais:
   </ul>
 </p>
 
-Para mais informações acesse a página de [levantamento de requisitos](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Levantamento-de-Requisitos)
+Para mais informações acesse a página de [levantamento de requisitos](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Técnicas-de-Levantamento-de-Requisitos).
 
 ---
 <h2>Protótipo</h2>
