@@ -85,7 +85,7 @@ O sistema foi desenhado separando a jornada em dois perfis principais:
   </ul>
 </p>
 
-Para mais informações acesse a página de [Estudo de Viabilidade](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Viabilidade).
+Para mais informações acesse [Estudo de Viabilidade](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/2.-Estudo-de-Viabilidade)
 
 ---
 <h2>Protótipo</h2>
@@ -96,7 +96,7 @@ Para mais informações acesse a página de [Estudo de Viabilidade](https://gith
 
 <ul>
   <li> <b>Link Direto do Figma:</b> <a href="https://www.figma.com/make/gLCupjo0KZUrHNLI9NHuNC/Nutri-App-Prototype-Review?t=8PYzrXKlGeDvwSM1-1&preview-route=%2Ftutorial">Acessar Protótipo Interativo no Figma</a></li>
-  <li> <b>Documentação do Protótipo:</b> <a href="https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/Prototipagem">Página de Prototipagem na Wiki</a> (contém imagens e descrição detalhada do objetivo de cada tela).</li>
+  <li> <b>Documentação do Protótipo:</b> <a href="https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/4.-Prototipagem">Página de Prototipagem na Wiki</a> (contém imagens e descrição detalhada do objetivo de cada tela).</li>
 </ul>
 
 <h1></h1>
