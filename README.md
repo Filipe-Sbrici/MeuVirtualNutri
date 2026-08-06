@@ -35,14 +35,6 @@ O sistema foi desenhado separando a jornada em dois perfis principais:
     </ul>
 </p>
 
-<p>
-  <b>Status:</b> <i>Fase de Desenvolvimento de Código (Pós-Prototipação)</i>
-</p>
-<p>
-  O projeto concluiu com sucesso a etapa de modelagem de requisitos, arquitetura de banco de dados e a prototipagem de alta fidelidade (com testes formais de usabilidade/UI/UX). Atualmente, a equipe encontra-se na fase de implementação das telas e integração com a API REST e o banco de dados. Novas atualizações serão documentadas conforme o avanço das sprints.
-</p>
-
-
 ---
 
 <h2>Sobre nós</h2>
@@ -88,10 +80,17 @@ O sistema foi desenhado separando a jornada em dois perfis principais:
 Para mais informações acesse [Estudo de Viabilidade](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/2.-Estudo-de-Viabilidade)
 
 ---
-<h2>Protótipo</h2>
+<h2>Statutus de Desenvolvimento</h2>
 
 <p>
-  O protótipo navegável de alta fidelidade do projeto foi inteiramente desenhado no Figma. Você pode interagir com as telas e testar os fluxos do Nutricionista e do Paciente:
+  <b>Status Atual:</b> <i>Fase de Desenvolvimento de Código (Pós-Prototipação)</i>
+</p>
+<p>
+  O projeto concluiu com sucesso a etapa de modelagem de requisitos, arquitetura de banco de dados e a prototipagem de alta fidelidade (com testes formais de usabilidade/UI/UX). Atualmente, a equipe encontra-se na fase de implementação das telas e integração com a API REST e o banco de dados. Novas atualizações serão documentadas conforme o avanço das sprints.
+</p>
+
+<p>
+  Um protótipo navegável de alta fidelidade do projeto foi inteiramente desenhado no Figma. Você pode interagir com as telas e testar os fluxos do Nutricionista e do Paciente:
 </p>
 
 <ul>
