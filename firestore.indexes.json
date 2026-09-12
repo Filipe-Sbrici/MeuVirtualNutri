@@ -1,0 +1,70 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "usuarios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipoUsuario", "order": "ASCENDING" },
+        { "fieldPath": "idNutricionista", "order": "ASCENDING" },
+        { "fieldPath": "nome", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "receitas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidNutricionista", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "receitas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "receitas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidPacienteAutor", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "consultas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participantes", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "dataHora", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "consultas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "dataHora", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "orientacoes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidPaciente", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "planos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidPaciente", "order": "ASCENDING" },
+        { "fieldPath": "criadoEm", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

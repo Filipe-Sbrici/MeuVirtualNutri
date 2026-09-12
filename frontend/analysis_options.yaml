@@ -1,0 +1,21 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Mantem o codigo limpo sem transformar avisos de estilo em erros.
+    prefer_const_constructors: info
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_print
+    - prefer_final_locals
+    - unawaited_futures

@@ -1,0 +1,81 @@
+name: MVN CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  frontend-ci:
+    name: Frontend CI (Flutter Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Instalar Dependências do Frontend
+        working-directory: ./frontend
+        run: flutter pub get
+
+      - name: Executar Testes Automatizados (12 Funcionalidades Principais + Widget Tests)
+        working-directory: ./frontend
+        run: flutter test --coverage
+
+  backend-ci:
+    name: Backend CI (Node.js Smoke & API Tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar Dependências do Backend
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Executar Smoke Tests e Validação de Rotas
+        working-directory: ./backend
+        run: npm test
+
+  cd-build:
+    name: CD (Build e Publicação de Artefatos)
+    needs: [frontend-ci, backend-ci]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Instalar Dependências
+        working-directory: ./frontend
+        run: flutter pub get
+
+      - name: Compilar Versão Web (Release)
+        working-directory: ./frontend
+        run: flutter build web --release
+
+      - name: Upload dos Artefatos de Build (Web Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mvn-web-build
+          path: frontend/build/web/
+          retention-days: 14

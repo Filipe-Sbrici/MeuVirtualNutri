@@ -1,0 +1,31 @@
+name: mvn_app
+description: Meu Virtual Nutri - telas de Chat, Progresso e Evolucao.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Cliente HTTP para consumir a API REST em JSON.
+  http: ^1.2.2
+
+  # Graficos de linha e barras da tela de Evolucao
+  # (equivalente ao Recharts usado no prototipo web).
+  fl_chart: ^0.69.0
+  firebase_core: ^4.14.0
+  firebase_auth: ^6.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - lib/assets/
+

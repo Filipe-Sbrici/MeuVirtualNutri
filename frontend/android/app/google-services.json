@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "611489504374",
+    "project_id": "meu-virtual-nutri",
+    "storage_bucket": "meu-virtual-nutri.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:611489504374:android:dc238466af807ed6751357",
+        "android_client_info": {
+          "package_name": "com.app.meu_virtual_nutri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRnMuCHQkIZVoK1bl6YZe9-poaaw9SvHs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:611489504374:android:4a5a570900b76368751357",
+        "android_client_info": {
+          "package_name": "com.example.mvn_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRnMuCHQkIZVoK1bl6YZe9-poaaw9SvHs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
