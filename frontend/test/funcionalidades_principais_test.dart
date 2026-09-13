@@ -295,7 +295,7 @@ void main() {
               '"idRemetente":"${kPacienteUsuario.uid}",'
               '"idDestinatario":"${kNutriUsuario.uid}",'
               '"nomeRemetente":"${kPacienteUsuario.nome}",'
-              '"mensagem":"Olá nutricionista, tudo bão?",'
+              '"mensagem":"Olá nutricionista, tudo bem?",'
               '"dataHora":"2026-09-12T19:00:00","ehMinha":true}}',
               200,
               headers: {'content-type': 'application/json; charset=utf-8'},
