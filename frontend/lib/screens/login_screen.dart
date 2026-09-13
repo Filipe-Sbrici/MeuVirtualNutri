@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final usuario = await widget.authService.login(
-        email: _emailController.text.trim(),
+        emai: _emailController.text.trim(),
         senha: _senhaController.text,
       );
 
