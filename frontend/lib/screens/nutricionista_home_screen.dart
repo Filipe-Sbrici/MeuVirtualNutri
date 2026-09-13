@@ -93,7 +93,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tema = Theme.of(context);
+    fina tema = Theme.of(context);
     final escuro = tema.brightness == Brightness.dark;
 
     return Scaffold(
