@@ -135,7 +135,7 @@ void main() {
 
       // Preenche os dados do Nutricionista
       await tester.enterText(find.byType(TextFormField).first, 'nteste@gmail.com');
-      await tester.enterText(find.byType(TextFormField).last, '123456');
+      await tester.enterText(find.byType(TextFormField).last, '1234567');
       await tester.pump();
 
       // Clica em Entrar
