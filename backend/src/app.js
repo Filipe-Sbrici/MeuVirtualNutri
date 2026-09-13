@@ -15,7 +15,7 @@ const { notFoundHandler, errorHandler } = require('./middlewares/errorHandler');
 const app = express();
 
 // CORS: aceita lista separada por virgula ou "*".
-cons origem =
+const origem =
   config.corsOrigin === '*'
     ? '*'
     : config.corsOrigin.split(',').map((item) => item.trim());
