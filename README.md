@@ -1,173 +1,235 @@
-# Meu Virtual Nutri (MVN)
-
-**Uma alimentação mais saudável para todos**
-
-Aplicativo TCC (ETEC Euro Albino de Souza) que conecta **nutricionistas** e **pacientes**: plano alimentar com checklist diário, progresso de peso com gráficos, chat, agenda de consultas, lista de compras e painel analítico do profissional.
+<h1> MeuVirtualNutri 
+<img width="40.66" height="42.53" align=left alt="logo MVN" src="https://github.com/user-attachments/assets/cfc99f53-b953-4dce-9906-8cd905dc4592" />
+</h1>
+<h4> 
+  
+  *Uma alimentação mais saudável para todos*
+</h4>
 
 ---
 
-## Arquitetura (v2 — Firebase)
+## 📌 Sobre o projeto
+
+O **Meu Virtual Nutri (MVN)** consiste em um ambiente digital que conecta o **nutricionista** e o **paciente**. O projeto surge como uma resposta ao aumento na procura por profissionais na área, com a intenção de agilizar o trabalho do nutricionista ao deixar as informações e contato do paciente mais acessíveis e de facilitar a rotina do paciente, ao permitir que ele tenha um acesso mais direto e fácil à sua rotina alimentar e ao seu acompanhamento profissional.
+
+O sistema foi desenhado separando a jornada em dois perfis principais:
+
+### 🩺 Perfil do Nutricionista:
+- **Segurança e Registro:** Cadastro corporativo com validação de CRN e especialização.
+- **Dashboard Centralizado:** Atalhos de acesso rápido para gestão de agenda, lista de clientes e chat.
+- **Segurança Clínica na UI:** Destaque visual no topo da tela para restrições alimentares, alergias e metas do paciente.
+- **Editor de Cardápio e Receitas:** Montagem de planos alimentares semanais e biblioteca de receitas com cálculo automático de macronutrientes.
+- **UX Conversacional:** Chat interno para envio de feedbacks imediatos sobre refeições e orientações.
+- **Painel Analítico:** Relatórios de evolução de peso, aderência ao plano e frequência de consultas.
+
+### 🥗 Perfil do Paciente:
+- **Cronograma Diário Interativo:** Plano alimentar visual em formato de checklist vertical por horários.
+- **Micro-interações de Hábitos:** Contador tátil de consumo de água (hidratação) e registro diário de humor.
+- **Acompanhamento de Evolução:** Gráficos interativos de peso, IMC automático e histórico de progresso.
+- **Lista de Compras:** Geração automática da lista de ingredientes com base no plano semanal.
+- **Compartilhamento de Receitas:** Envio de receitas caseiras para validação e aprovação do nutricionista.
+- **Busca e Favoritos:** Opção de sinalizar alimentos preferidos para o nutricionista.
+
+---
+
+## 👥 Sobre nós
+
+Este software é desenvolvido como **Trabalho de Conclusão de Curso (TCC)** do curso de Ensino Médio Integrado ao Técnico em Desenvolvimento de Sistemas na **ETEC Euro Albino de Souza** (Mogi Guaçu / SP).
+
+### 🎓 Alunos Responsáveis:
+- Emilly Christinny Alves de Jesus
+- Filipe Soares Sbrici
+- Gabriel Ferrareiz da Costa
+- Isaque Machado
+- João Vitor Daltio
+
+### 👨‍🏫 Professores Orientadores:
+- Prof. Marcus Bretas
+- Prof. Pedro Amalfi
+
+---
+
+## 🛠️ Tecnologias
+
+O projeto utiliza uma arquitetura moderna voltada para desempenho móvel, escalabilidade em nuvem e alta confiabilidade:
+
+- **Frontend:** [Flutter](https://flutter.dev/) & [Dart](https://dart.dev/) (Android, iOS, Web e Desktop)
+- **Backend:** [Node.js](https://nodejs.org/) com [Express](https://expressjs.com/)
+- **Autenticação:** [Firebase Authentication](https://firebase.google.com/docs/auth) (Login, Cadastro e Redefinição de Senha)
+- **Banco de Dados:** [Cloud Firestore](https://firebase.google.com/docs/firestore) (NoSQL em tempo real e escalável)
+- **Comunicação:** API REST com payloads JSON e Bearer Token
+- **Integração e Entrega Contínua:** [GitHub Actions](https://github.com/features/actions) (CI/CD automatizado)
+- **UI/UX & Prototipagem:** [Figma](https://www.figma.com/)
+
+Para mais informações técnicas, consulte o [Estudo de Viabilidade na Wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/2.-Estudo-de-Viabilidade).
+
+---
+
+## 🚀 Status de Desenvolvimento
+
+- **Status Atual:** *Fase de Desenvolvimento de Código e Integração Contínua (CI/CD)*
+- O projeto concluiu com sucesso a modelagem de requisitos, migração arquitetural para Firebase/Firestore, suíte completa de testes automatizados e pipeline de integração contínua (CI/CD).
+- Um protótipo navegável de alta fidelidade do projeto foi inteiramente desenhado no Figma:
+  - 🎨 **Link Direto do Figma:** [Acessar Protótipo Interativo no Figma](https://www.figma.com/make/gLCupjo0KZUrHNLI9NHuNC/mvn?p=f&preview-route=%2Flogin)
+  - 📖 **Documentação do Protótipo:** [Página de Prototipagem na Wiki](https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki/4.-Prototipagem) (contém imagens e descrição detalhada de cada fluxo).
+
+---
+
+## 🏗️ Arquitetura do Sistema (v2 — Firebase)
 
 ```
-Flutter / Dart (mobile)
+Flutter / Dart (Mobile & Web)
    │
-   ├── Firebase Authentication  (login, cadastro, redefinição de senha)
+   ├── Firebase Authentication (Login, Cadastro, Recuperação de Senha)
    │
-   └── REST API / JSON  ──►  Node.js (Express)  ──►  Firebase Admin SDK  ──►  Cloud Firestore
+   └── REST API / JSON ──► Node.js (Express) ──► Firebase Admin SDK ──► Cloud Firestore
 ```
 
-- **Autenticação**: o app fala **direto** com o Firebase Authentication (SDK cliente). A API Node.js valida o `Bearer <id-token>` de cada requisição com o Admin SDK.
-- **Dados**: todo acesso ao Firestore passa pela API (Admin SDK). As **Security Rules** do Firestore estão **fechadas para clientes** (defesa profunda) — ver `firestore.rules`.
-- **MySQL foi totalmente removido.**
+- **Autenticação:** O aplicativo comunica-se diretamente com o Firebase Authentication (SDK cliente). A API Node.js valida o `Bearer <id-token>` em cada requisição através do Admin SDK.
+- **Dados:** Todo acesso ao Firestore passa pela API REST protegida. As **Security Rules** do Firestore estão fechadas para acesso direto de clientes (`firestore.rules`), garantindo governança e segurança centralizadas.
 
-### Estrutura do repositório
+---
+
+## 📁 Estrutura do Repositório
 
 ```
 mvn/
+├── .github/workflows/       # Pipelines de CI/CD (GitHub Actions)
 ├── backend/                 # API REST Node.js + Firebase Admin SDK
 │   ├── src/
 │   │   ├── config/          # env.js, firebase.js
 │   │   ├── middlewares/     # auth (Bearer token), errorHandler
-│   │   ├── controllers/     # HTTP <-> serviço
-│   │   ├── services/        # regras de negócio
-│   │   ├── repositories/    # acesso ao Firestore
-│   │   ├── routes/          # rotas Express (/api)
-│   │   └── utils/           # validadores, cálculos nutricionais, AppError
+│   │   ├── controllers/     # Camada de controle HTTP
+│   │   ├── services/        # Regras de negócio da aplicação
+│   │   ├── repositories/    # Acesso e queries ao Cloud Firestore
+│   │   ├── routes/          # Rotas Express (/api)
+│   │   └── utils/           # Validadores, cálculos nutricionais e erros
 │   └── scripts/             # seed-firestore.js, smoke.js
-├── frontend/                # Aplicativo Flutter (Android/iOS/Web/Desktop)
-│   └── lib/
-│       ├── core/            # ApiClient (token), tema, config Firebase
-│       ├── models/          # Usuario, Mensagem, Progresso, Evolucao, Cardapio...
-│       ├── services/        # AuthService, Chat, Progresso, Evolucao, Onboarding...
-│       ├── screens/         # Telas (ver mapa abaixo)
-│       └── widgets/         # componentes compartilhados
-├── database/                # (legado) esquema MySQL original — mantido apenas
-│                            # como referência histórica do TCC; NÃO é usado.
-├── firestore.rules          # Regras de segurança (Firestore fechado p/ clientes)
+├── frontend/                # Aplicativo Flutter
+│   ├── lib/
+│   │   ├── core/            # ApiClient, temas (claro/escuro), config Firebase
+│   │   ├── models/          # Modelos de dados (Usuario, Cardapio, Progresso...)
+│   │   ├── services/        # Serviços de comunicação com a API
+│   │   ├── screens/         # Telas de Paciente, Nutricionista e Autenticação
+│   │   └── widgets/         # Componentes visuais compartilhados
+│   └── test/                # Suíte de testes unitários e de widgets
+├── database/                # (legado) Esquema MySQL original mantido para histórico do TCC
+├── firestore.rules          # Regras de segurança do Firestore
 ├── firestore.indexes.json   # Índices compostos
-└── firebase.json            # Configuração de emuladores
+└── firebase.json            # Configuração de emuladores locais
 ```
 
-> **Importante:** a pasta `database/` contém o esquema SQL original usado na fase anterior do projeto. O aplicativo **não** depende mais dele; os arquivos ficam no repositório como documentação da modelagem inicial. Para excluir, remova a pasta e a referência neste README.
+---
+
+## ⚡ Como Rodar o Projeto
+
+### 1. Pré-requisitos
+- [Node.js 18+](https://nodejs.org/)
+- [Flutter SDK 3.x](https://flutter.dev/)
+- [Firebase CLI](https://firebase.google.com/docs/cli) (opcional, para emulador)
+
+### 2. Backend (Node.js)
+```bash
+cd backend
+npm install
+cp .env.example .env   # Configure as credenciais do Firebase
+npm run db:seed        # Popula o banco com dados de demonstração
+npm start              # Inicia o servidor na porta configurada
+```
+
+### 3. Frontend (Flutter)
+```bash
+cd frontend
+flutter pub get
+flutter run
+```
+
+> Para orientações detalhadas de ambiente e credenciais, consulte o arquivo **[CONFIGURACAO-FIREBASE.md](CONFIGURACAO-FIREBASE.md)** e **[backend/README.md](backend/README.md)**.
 
 ---
 
-## Como rodar (visão geral)
+## 📱 Telas Implementadas (Protótipo → Aplicativo)
 
-1. **Backend** — `cd backend && npm install && cp .env.example .env` (ajuste o Firebase) && `npm start`
-2. **Seed** — `npm run db:seed` (popula Firestore de demonstração)
-3. **Frontend** — `cd frontend && flutter pub get && flutter run`
-
-Guia completo com as duas opções de ambiente (emulador local e projeto Firebase real): **[backend/README.md](backend/README.md)** e **[CONFIGURACAO-FIREBASE.md](CONFIGURACAO-FIREBASE.md)**.
-
----
-
-## Telas implementadas (protótipo → app)
-
-### Autenticação e onboarding
-| Protótipo | Tela | Status |
+### Autenticação e Onboarding
+| Protótipo | Tela no App | Status |
 |---|---|---|
 | 4.5.1 Login | `login_screen` | ✅ Firebase Auth + link "esqueci a senha" |
-| 4.5.2 Criação de conta Cliente | `cadastro_paciente_screen` | ✅ |
+| 4.5.2 Criação de conta Cliente | `cadastro_paciente_screen` | ✅ Cadastro completo |
 | 4.5.3 Criação de conta Nutricionista | `cadastro_nutricionista_screen` | ✅ CRN + especialização |
-| 4.5.4 Recuperação de senha | diálogo de e-mail | ✅ `sendPasswordResetEmail` |
-| 4.5.5–4.5.10 Onboarding (5 etapas) | `onboarding_screen` | ✅ nutricionista→dados→estilo de vida→perfil alimentar→restrições |
-| 4.5.11 Tutorial interativo | 6ª etapa do onboarding | ✅ |
+| 4.5.4 Recuperação de senha | Diálogo de e-mail | ✅ `sendPasswordResetEmail` |
+| 4.5.5–4.5.10 Onboarding (5 etapas) | `onboarding_screen` | ✅ Nutricionista → Dados → Estilo de Vida → Perfil → Restrições |
+| 4.5.11 Tutorial interativo | 6ª etapa do onboarding | ✅ Apresentação dos recursos |
 
-### Paciente
-| Protótipo | Tela | Status |
+### Área do Paciente
+| Protótipo | Tela no App | Status |
 |---|---|---|
-| 4.5.12 Central (Cardápio + Bem-Estar) | `paciente_home_screen` + `bem_estar_screen` | ✅ checklist diário, água, humor, banner de não lidas |
-| 4.5.13 Plano alimentar semanal | `PlanoSemanalScreen` | ✅ navegação por dia, ingredientes |
-| 4.5.14 Progresso e Evolução | `progresso_screen` + `evolucao_screen` | ✅ registro de peso, gráficos (fl_chart) |
-| 4.5.15 Meu nutricionista | `meu_nutri_screen` | ✅ Contato/Orientações/Agenda |
-| 4.5.16 Chat | `chat_screen` | ✅ polling, balões, envio otimista |
-| 4.5.17 Vídeo chamada | `_VideochamadaScreen` | ✅ interface simulada (mic/câmera/desligar) |
-| 4.5.18 Lista de compras | `ListaComprasScreen` | ✅ gerada do plano, por categoria |
-| 4.5.19 Perfil do paciente | `perfil_screen` | ✅ editar dados, IMC, excluir conta |
+| 4.5.12 Central (Cardápio + Bem-Estar) | `paciente_home_screen` + `bem_estar_screen` | ✅ Checklist diário, hidratação, humor e alertas |
+| 4.5.13 Plano alimentar semanal | `PlanoSemanalScreen` | ✅ Navegação por dias e detalhes de refeições |
+| 4.5.14 Progresso e Evolução | `progresso_screen` + `evolucao_screen` | ✅ Registro de peso e gráficos com `fl_chart` |
+| 4.5.15 Meu nutricionista | `meu_nutri_screen` | ✅ Contato, orientações recebidas e agenda |
+| 4.5.16 Chat | `chat_screen` | ✅ Mensagens em tempo real com envio otimista |
+| 4.5.17 Vídeo chamada | `_VideochamadaScreen` | ✅ Interface de chamada (câmera, microfone) |
+| 4.5.18 Lista de compras | `ListaComprasScreen` | ✅ Gerada automaticamente a partir do cardápio |
+| 4.5.19 Perfil do paciente | `perfil_screen` | ✅ Edição de dados, cálculo de IMC e configurações |
 
-### Nutricionista
-| Protótipo | Tela | Status |
+### Área do Nutricionista
+| Protótipo | Tela no App | Status |
 |---|---|---|
-| 4.5.20 Inicial (atalhos + "+") | `nutricionista_home_screen` | ✅ |
-| 4.5.21 Cadastro/vinculação de paciente | diálogo "+" | ✅ vincula por e-mail |
-| 4.5.22 Perfil clínico do paciente | `PerfilClinicoScreen` | ✅ dados, restrições em destaque, orientações |
-| 4.5.23 Editor de cardápio | `EditorCardapioScreen` | ✅ dia → refeição → receita, barra das 42 refeições |
-| 4.5.24 Biblioteca de receitas | `ReceitasTab` + `EditorReceitaScreen` | ✅ macros calculados automaticamente |
-| 4.5.25 Receitas compartilhadas | aba "Compartilhadas" + `CompartilharReceitaScreen` | ✅ paciente envia (macros da base de alimentos); nutri aprova/recusa com justificativa |
-| 4.5.26 Agenda | `AgendaTab` | ✅ abrir horários (só futuros), concluir e cancelar consultas |
-| 4.5.27 Relatórios e análise | `RelatoriosScreen` | ✅ variação de peso em 30d, aderência, frequência |
-| 4.5.28 Configurações do nutricionista | edição de perfil via API | ✅ (`PUT /api/perfil/perfil`) |
+| 4.5.20 Inicial | `nutricionista_home_screen` | ✅ Atalhos rápidos e visão geral |
+| 4.5.21 Vinculação de paciente | Diálogo de vinculação | ✅ Vínculo direto por e-mail |
+| 4.5.22 Perfil clínico do paciente | `PerfilClinicoScreen` | ✅ Restrições em destaque, histórico e metas |
+| 4.5.23 Editor de cardápio | `EditorCardapioScreen` | ✅ Gestão das 42 refeições semanais |
+| 4.5.24 Biblioteca de receitas | `ReceitasTab` + `EditorReceitaScreen` | ✅ Cálculo automático de macronutrientes |
+| 4.5.25 Receitas compartilhadas | `CompartilharReceitaScreen` | ✅ Aprovação/recusa com justificativa clínica |
+| 4.5.26 Agenda de consultas | `AgendaTab` | ✅ Gestão de horários, confirmação e cancelamento |
+| 4.5.27 Relatórios e análise | `RelatoriosScreen` | ✅ Variação de peso, aderência e frequência |
+| 4.5.28 Configurações do profissional | `perfil_screen` | ✅ Atualização de dados cadastrais e CRN |
 
 ---
 
-## Migração MySQL → Firestore (mapeamento)
+## 🧪 Testes Automatizados e CI/CD
 
-| MySQL | Cloud Firestore |
-|---|---|
-| `usuario` + `paciente` + `nutricionista` | `usuarios/{uid}` — doc achatado, ID = UID do Firebase Auth |
-| `mensagem` | `conversas/{uidA__uidB}/mensagens/{autoId}` |
-| `progresso` | `usuarios/{uid}/progresso/{YYYY-MM-DD}` (1 doc/dia) |
-| `plano_alimentar` | `planos/{id}` |
-| `refeicao` + `refeicao_alimento` | `planos/{id}/refeicoes/{dia_tipo}` (ingredientes embutidos) |
-| `alimento` | `alimentos/{id}` |
-| `favoritos`, `paciente_restricao` | arrays no documento do paciente |
-| `consulta` | `consultas/{id}` |
-| `restricao` | catálogo fixo no app + arrays no paciente |
-| *(novo)* biblioteca de receitas | `receitas/{id}` (status aprovada/pendente/recusada) |
-| *(novo)* orientações/feedbacks | `orientacoes/{id}` |
+O projeto conta com uma suíte de testes robusta e integração contínua configurada via **GitHub Actions** (`.github/workflows/ci_cd.yml`):
 
-## API REST (resumo)
-
-Autenticação: `Authorization: Bearer <firebase-id-token>` em todas as rotas (exceto `/api` e `/api/health`).
-
-- `POST /api/auth/cadastro/paciente|nutricionista` — cria perfil pós-Firebase-Auth
-- `GET  /api/auth/perfil` — inclui os dados clínicos (idade, peso, altura, restrições) usados pela tela de Perfil
-- Onboarding: `GET/POST /api/onboarding/...` (nutricionistas, dados, estilo de vida, perfil alimentar, restrições, tutorial)
-- Perfil: `PUT|DELETE /api/perfil/perfil`
-- Chat: `GET /api/chat/conversa/:uidContato`, `POST /api/chat/mensagens`, `GET /api/chat/contato`, `GET /api/chat/nao-lidas`
-- Progresso: `GET /api/progresso` (traz `hoje` com água/humor), `POST /api/progresso/peso`, `DELETE /api/progresso/peso/:data`, `POST /api/progresso/agua|humor`
-- Evolução: `GET /api/evolucao/:uidPaciente?periodo=`
-- Cardápio: `GET /api/cardapio/hoje|semanal|lista-compras`, `POST /api/cardapio/hoje/check`
-- Receitas do paciente: `GET|POST /api/minhas-receitas`; base de alimentos: `GET /api/alimentos`
-- Nutricionista: `GET|POST /api/nutricionista/pacientes`, `*/pacientes/:uid/plano`, `*/receitas`, `GET /api/nutricionista/relatorios`, `POST /api/nutricionista/orientacoes`
-- Agenda: `GET|POST /api/consultas`, `POST /api/consultas/:id/confirmar|concluir|cancelar`
-
-Índice completo em `GET /api`.
-
-**Autorização aplicada na API** (não só na UI): conversa e agenda só existem entre um paciente e o **seu** nutricionista vinculado; receitas, planos e consultas só podem ser lidos/alterados por quem é dono do vínculo.
-
-## Testes
+### Como rodar os testes localmente:
 
 ```bash
-# Backend (camada HTTP + segurança, sem Firebase)
-cd backend && npm run smoke
+# 1. Backend (testes de rotas HTTP, segurança e middlewares)
+cd backend && npm test
 
-# Flutter (28 testes de widget/contrato JSON, sem rede)
+# 2. Frontend Flutter (49 testes de widget, telas e contratos de API)
 cd frontend && flutter test
 
-# E2E completo contra o Firebase real (API no ar + credencial no ambiente)
-#   82 verificações: cadastro, onboarding, chat, progresso, cardápio,
-#   receitas, agenda, orientações, relatórios, perfil, segurança e
-#   isolamento entre nutricionistas.
+# 3. Testes E2E (com API em execução)
 cd backend && npm run e2e
-
-# E2E Flutter->API->Firestore (requer API no ar + seed carregado).
-# A VM de teste não tem sessão do Firebase Auth, então a API precisa
-# aceitar o modo demo: backend/.env -> FIREBASE_DEMO_MODE=true.
-# Sem isso os casos são IGNORADOS (não falham).
-cd frontend && flutter test test/e2e_test.dart --dart-define=API_HOST=localhost
 ```
 
-## Segurança
+### Pipeline Automatizado (GitHub Actions):
+- **Frontend CI:** Execução automática da suíte completa de testes no Flutter (`flutter test --coverage`).
+- **Backend CI:** Validação de rotas, middlewares e *smoke tests* no Node.js (`npm test`).
+- **CD (Web Release):** Compilação automática da aplicação Web (`flutter build web --release`) e publicação dos artefatos em cada push na branch principal.
 
-- Senhas geridas pelo Firebase Authentication (hash/bcrypt do lado do Google) — a API **nunca** vê senhas.
-- Firestore fechado para clientes por `firestore.rules`; toda autorização (paciente↔nutricionista vinculado) é verificada na API.
-- Token de sessão injetado automaticamente pelo `ApiClient` a cada requisição.
-- Nenhuma chave privada no código; credenciais ficam em `.env` (backend) e nos arquivos gerados pela CLI FlutterFire (frontend).
+---
 
-## Alunos
+## 🔒 Segurança e Boas Práticas
 
-Emilly Christinny Alves de Jesus • Filipe Soares Sbrici • Gabriel Ferrareiz da Costa • Isaque Machado • João Vitor Daltio
+- **Autenticação Forte:** Credenciais gerenciadas pelo Firebase Auth com criptografia e tokens JWT de curta duração.
+- **Autorização na API:** Vínculos e dados clínicos são validados no backend antes de qualquer operação.
+- **Defesa em Profundidade:** Regras do Firestore (`firestore.rules`) bloqueadas para acesso cliente não autenticado.
+- **Privacidade de Credenciais:** Variáveis sensíveis e chaves de API isoladas em `.env` e fora do versionamento público.
 
-**Orientadores:** Prof. Marcus Bretas • Prof. Pedro Amalfi — ETEC Euro Albino de Souza (Mogi Guaçu/SP)
+---
+
+## 📚 Wiki do Projeto
+
+Toda a documentação técnica, atas de reuniões, levantamento de requisitos, diagramas UML, modelagem e relatórios estão centralizados na Wiki oficial:
+
+<p align="center">
+  <b><a href="https://github.com/Filipe-Sbrici/MeuVirtualNutri/wiki">📖 Acessar a Wiki Oficial do Projeto no GitHub</a></b>
+</p>
+
+---
+
+<h5 align="center">
+  Meu Virtual Nutri • ETEC Euro Albino de Souza (Mogi Guaçu / SP)
+</h5>
