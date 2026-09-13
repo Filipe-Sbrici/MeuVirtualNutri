@@ -162,7 +162,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Preenche os dados do Paciente
-      await tester.enterText(find.byType(TextFormField).first, 'pteste@gmail.com');
+      await tester.enterText(find.byType(TextFormField).first, 'vteste@gmail.com');
       await tester.enterText(find.byType(TextFormField).last, '123456');
       await tester.pump();
 
