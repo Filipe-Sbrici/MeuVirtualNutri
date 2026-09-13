@@ -76,6 +76,6 @@ jobs:
       - name: Upload dos Artefatos de Build (Web Release)
         uses: actions/upload-artifact@v4
         with:
-          name: mvn-web-build
+          name: mvn-artifact
           path: frontend/build/web/
           retention-days: 14
