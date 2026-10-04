@@ -87,14 +87,20 @@ class Usuario {
         onboardingCompleto:
             mudancas['onboardingCompleto'] ?? onboardingCompleto,
         tutorialVisto: mudancas['tutorialVisto'] ?? tutorialVisto,
-        idade: mudancas.containsKey('idade') ? mudancas['idade'] as int? : idade,
-        pesoAtual:
-            mudancas.containsKey('pesoAtual') ? mudancas['pesoAtual'] as double? : pesoAtual,
-        pesoMeta:
-            mudancas.containsKey('pesoMeta') ? mudancas['pesoMeta'] as double? : pesoMeta,
-        altura:
-            mudancas.containsKey('altura') ? mudancas['altura'] as double? : altura,
-        genero: mudancas.containsKey('genero') ? mudancas['genero'] as String? : genero,
+        idade:
+            mudancas.containsKey('idade') ? mudancas['idade'] as int? : idade,
+        pesoAtual: mudancas.containsKey('pesoAtual')
+            ? mudancas['pesoAtual'] as double?
+            : pesoAtual,
+        pesoMeta: mudancas.containsKey('pesoMeta')
+            ? mudancas['pesoMeta'] as double?
+            : pesoMeta,
+        altura: mudancas.containsKey('altura')
+            ? mudancas['altura'] as double?
+            : altura,
+        genero: mudancas.containsKey('genero')
+            ? mudancas['genero'] as String?
+            : genero,
         meta: mudancas.containsKey('meta') ? mudancas['meta'] as String? : meta,
         nivelAtividade: mudancas.containsKey('nivelAtividade')
             ? mudancas['nivelAtividade'] as String?
@@ -105,19 +111,18 @@ class Usuario {
         idNutricionista: mudancas.containsKey('idNutricionista')
             ? mudancas['idNutricionista'] as String?
             : idNutricionista,
-        alimentosFavoritos:
-            mudancas['alimentosFavoritos'] as List<String>? ?? alimentosFavoritos,
-        alimentosRejeitados:
-            mudancas['alimentosRejeitados'] as List<String>? ?? alimentosRejeitados,
+        alimentosFavoritos: mudancas['alimentosFavoritos'] as List<String>? ??
+            alimentosFavoritos,
+        alimentosRejeitados: mudancas['alimentosRejeitados'] as List<String>? ??
+            alimentosRejeitados,
         restricoes: mudancas['restricoes'] as List<String>? ?? restricoes,
         condicoesMedicas:
             mudancas['condicoesMedicas'] as List<String>? ?? condicoesMedicas,
-        compartilharListaCompras: mudancas['compartilharListaCompras'] ??
-            compartilharListaCompras,
-        compartilharHumor:
-            mudancas['compartilharHumor'] ?? compartilharHumor,
-        observacoesSeguranca: mudancas['observacoesSeguranca'] ??
-            observacoesSeguranca,
+        compartilharListaCompras:
+            mudancas['compartilharListaCompras'] ?? compartilharListaCompras,
+        compartilharHumor: mudancas['compartilharHumor'] ?? compartilharHumor,
+        observacoesSeguranca:
+            mudancas['observacoesSeguranca'] ?? observacoesSeguranca,
       );
 
   factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
@@ -151,7 +156,6 @@ class Usuario {
   static List<String> _lista(dynamic valor) =>
       valor is List ? valor.map((e) => e.toString()).toList() : const [];
 }
-
 
 /// Resumo de nutricionista exibido na etapa 1 do onboarding.
 class NutricionistaResumo {

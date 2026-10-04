@@ -14,6 +14,7 @@ import '../models/usuario.dart';
 import '../services/api_services.dart';
 import '../services/mvn_services.dart';
 import '../widgets/common.dart';
+import '../widgets/foto_perfil.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({
@@ -157,8 +158,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
         'compartilharHumor': _compartilharHumor,
       };
 
-      final atualizado =
-          await widget.onboardingService.atualizarPerfil(campos);
+      final atualizado = await widget.onboardingService.atualizarPerfil(campos);
       if (!mounted) return;
       widget.aoAtualizarUsuario(atualizado);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,7 +171,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     } on ApiException catch (erro) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
+        SnackBar(
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
       );
     } catch (erro) {
       if (!mounted) return;
@@ -313,21 +314,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     padding: const EdgeInsets.all(18),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 34,
-                          backgroundColor: escuro
-                              ? const Color(0xFF21262D)
-                              : AppColors.paletaVerdeSuave,
-                          child: Text(
-                            _iniciais(u.nome),
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: escuro
-                                  ? AppColors.paletaLilasSuave
-                                  : AppColors.paletaRoxo,
-                            ),
-                          ),
+                        FotoPerfil(
+                          nome: u.nome,
+                          uid: u.uid,
+                          onboardingService: widget.onboardingService,
+                          raio: 34,
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -354,7 +345,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppColors.paletaVerde.withValues(alpha: 0.15),
+                                  color: AppColors.paletaVerde
+                                      .withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: const Text(
@@ -379,13 +371,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const TituloCard(texto: 'Dados Cadastrais', emoji: '👤'),
+                        const TituloCard(
+                            texto: 'Dados Cadastrais', emoji: '👤'),
                         const SizedBox(height: 14),
                         _campo('Nome Completo', _nomeController, 'Seu nome',
-                            validador: (valor) =>
-                                (valor ?? '').trim().isEmpty
-                                    ? 'Informe seu nome.'
-                                    : null),
+                            validador: (valor) => (valor ?? '').trim().isEmpty
+                                ? 'Informe seu nome.'
+                                : null),
                         _campo('Telefone / WhatsApp', _telefoneController,
                             '(00) 00000-0000',
                             teclado: TextInputType.phone),
@@ -399,7 +391,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const TituloCard(texto: 'Dados Clínicos & Físicos', emoji: '⚖️'),
+                        const TituloCard(
+                            texto: 'Dados Clínicos & Físicos', emoji: '⚖️'),
                         const SizedBox(height: 14),
                         Row(
                           children: [
@@ -412,10 +405,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: _campo('Altura (m)', _alturaController,
-                                  '1.65',
-                                  teclado: const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              child: _campo(
+                                  'Altura (m)', _alturaController, '1.65',
+                                  teclado:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
                                   validador: (valor) =>
                                       _validarFaixa(valor, 0.9, 2.5)),
                             ),
@@ -425,19 +419,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: _campo('Peso Atual (kg)', _pesoController,
-                                  '68.1',
-                                  teclado: const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              child: _campo(
+                                  'Peso Atual (kg)', _pesoController, '68.1',
+                                  teclado:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
                                   validador: (valor) =>
                                       _validarFaixa(valor, 20, 400)),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: _campo('Peso-Meta (kg)',
-                                  _pesoMetaController, '65.0',
-                                  teclado: const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              child: _campo(
+                                  'Peso-Meta (kg)', _pesoMetaController, '65.0',
+                                  teclado:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
                                   validador: (valor) =>
                                       _validarFaixa(valor, 20, 400)),
                             ),
@@ -463,8 +459,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                               ),
                             ),
                             child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,7 +521,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.vermelho.withValues(alpha: 0.12),
+                                color:
+                                    AppColors.vermelho.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -579,7 +575,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           titulo: 'Condições Médicas / Diagnósticos',
                           itens: _condicoesMedicas,
                           corBadge: const Color(0xFFD97706),
-                          hintAdicionar: 'Ex: Diabetes Tipo 2, Hipertensão, Refluxo',
+                          hintAdicionar:
+                              'Ex: Diabetes Tipo 2, Hipertensão, Refluxo',
                           aoRemover: (index) =>
                               setState(() => _condicoesMedicas.removeAt(index)),
                           aoAdicionar: (item) => _condicoesMedicas.add(item),
@@ -614,7 +611,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             contentPadding: const EdgeInsets.all(12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: AppColors.borda),
+                              borderSide:
+                                  const BorderSide(color: AppColors.borda),
                             ),
                           ),
                         ),
@@ -634,7 +632,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.paletaVerde.withValues(alpha: 0.12),
+                                color: AppColors.paletaVerde
+                                    .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -682,24 +681,30 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          initialValue: _opcoesDieta.contains(_tipoDietaSelecionado)
-                              ? _tipoDietaSelecionado
-                              : null,
+                          initialValue:
+                              _opcoesDieta.contains(_tipoDietaSelecionado)
+                                  ? _tipoDietaSelecionado
+                                  : null,
                           hint: const Text('Selecione seu padrão de dieta',
-                              style: TextStyle(fontSize: 13, color: AppColors.textoFraco)),
+                              style: TextStyle(
+                                  fontSize: 13, color: AppColors.textoFraco)),
                           items: _opcoesDieta
                               .map((dieta) => DropdownMenuItem(
                                     value: dieta,
-                                    child: Text(dieta, style: const TextStyle(fontSize: 13.5)),
+                                    child: Text(dieta,
+                                        style: const TextStyle(fontSize: 13.5)),
                                   ))
                               .toList(),
-                          onChanged: (val) => setState(() => _tipoDietaSelecionado = val),
+                          onChanged: (val) =>
+                              setState(() => _tipoDietaSelecionado = val),
                           decoration: InputDecoration(
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 11),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: AppColors.borda),
+                              borderSide:
+                                  const BorderSide(color: AppColors.borda),
                             ),
                           ),
                         ),
@@ -711,8 +716,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           itens: _alimentosFavoritos,
                           corBadge: AppColors.paletaVerde,
                           hintAdicionar: 'Ex: Abacate, Aveia, Frango grelhado',
-                          aoRemover: (index) =>
-                              setState(() => _alimentosFavoritos.removeAt(index)),
+                          aoRemover: (index) => setState(
+                              () => _alimentosFavoritos.removeAt(index)),
                           aoAdicionar: (item) => _alimentosFavoritos.add(item),
                         ),
                         const SizedBox(height: 14),
@@ -723,8 +728,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           itens: _alimentosRejeitados,
                           corBadge: AppColors.paletaRoxo,
                           hintAdicionar: 'Ex: Berinjela, Coentro, Fígado',
-                          aoRemover: (index) =>
-                              setState(() => _alimentosRejeitados.removeAt(index)),
+                          aoRemover: (index) => setState(
+                              () => _alimentosRejeitados.removeAt(index)),
                           aoAdicionar: (item) => _alimentosRejeitados.add(item),
                         ),
                       ],
@@ -743,7 +748,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.paletaRoxo.withValues(alpha: 0.12),
+                                color: AppColors.paletaRoxo
+                                    .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -783,14 +789,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: const Text(
                               'Compartilhar Lista de Compras',
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: 13.5, fontWeight: FontWeight.w600),
                             ),
                             subtitle: const Text(
                               'Permite que seu nutricionista veja os itens da sua lista e saiba o que você está comprando.',
-                              style: TextStyle(fontSize: 11.5, color: AppColors.textoSuave),
+                              style: TextStyle(
+                                  fontSize: 11.5, color: AppColors.textoSuave),
                             ),
                             activeThumbColor: AppColors.paletaVerde,
-                            activeTrackColor: AppColors.paletaVerde.withValues(alpha: 0.35),
+                            activeTrackColor:
+                                AppColors.paletaVerde.withValues(alpha: 0.35),
                             value: _compartilharListaCompras,
                             onChanged: (val) =>
                                 setState(() => _compartilharListaCompras = val),
@@ -803,14 +812,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             contentPadding: EdgeInsets.zero,
                             title: const Text(
                               'Compartilhar Humor e Sintomas',
-                              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: 13.5, fontWeight: FontWeight.w600),
                             ),
                             subtitle: const Text(
                               'Permite que seu nutricionista acompanhe seus registros diários de humor, disposição e bem-estar.',
-                              style: TextStyle(fontSize: 11.5, color: AppColors.textoSuave),
+                              style: TextStyle(
+                                  fontSize: 11.5, color: AppColors.textoSuave),
                             ),
                             activeThumbColor: AppColors.paletaVerde,
-                            activeTrackColor: AppColors.paletaVerde.withValues(alpha: 0.35),
+                            activeTrackColor:
+                                AppColors.paletaVerde.withValues(alpha: 0.35),
                             value: _compartilharHumor,
                             onChanged: (val) =>
                                 setState(() => _compartilharHumor = val),
@@ -842,7 +854,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white),
                             )
-                          : const Icon(Icons.check_circle_outline_rounded, size: 20),
+                          : const Icon(Icons.check_circle_outline_rounded,
+                              size: 20),
                       label: Text(
                         _salvando ? 'Salvando...' : 'Salvar Alterações',
                         style: const TextStyle(
@@ -920,7 +933,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Row(
                   children: [
-                    Icon(Icons.add_rounded, size: 16, color: AppColors.paletaVerde),
+                    Icon(Icons.add_rounded,
+                        size: 16, color: AppColors.paletaVerde),
                     SizedBox(width: 2),
                     Text(
                       'Adicionar',
@@ -1030,7 +1044,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
           Text(
             rotulo,
             style: const TextStyle(
-                fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.texto),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.texto),
           ),
           const SizedBox(height: 6),
           TextFormField(
@@ -1059,16 +1075,5 @@ class _PerfilScreenState extends State<PerfilScreen> {
         ],
       ),
     );
-  }
-
-  static String _iniciais(String nome) {
-    final partes = nome
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((parte) => parte.isNotEmpty)
-        .toList();
-    if (partes.isEmpty) return '?';
-    if (partes.length == 1) return partes.first[0].toUpperCase();
-    return (partes.first[0] + partes.last[0]).toUpperCase();
   }
 }

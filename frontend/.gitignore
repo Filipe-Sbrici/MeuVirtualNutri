@@ -10,3 +10,5 @@ pubspec.lock
 .idea/
 *.iml
 .vscode/
+# Widget Preview related
+.widget_preview/

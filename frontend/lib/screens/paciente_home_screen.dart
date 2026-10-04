@@ -137,14 +137,16 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
           content: Text(refeicao.concluida
               ? 'Refeição desmarcada.'
               : '${refeicao.rotuloTipo} concluída! ${resumo.caloriasConcluidas.round()} kcal até agora.'),
-          backgroundColor:
-              refeicao.concluida ? AppColors.fonteSubtitulo : AppColors.verdeEscuro,
+          backgroundColor: refeicao.concluida
+              ? AppColors.fonteSubtitulo
+              : AppColors.verdeEscuro,
         ),
       );
     } on ApiException catch (erro) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
+        SnackBar(
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
       );
     }
   }
@@ -171,7 +173,8 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
     } on ApiException catch (erro) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
+        SnackBar(
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
       );
     }
   }
@@ -190,7 +193,8 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
     } on ApiException catch (erro) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
+        SnackBar(
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
       );
     }
   }
@@ -276,7 +280,6 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
         case _SubTelaPaciente.evolucao:
           return EvolucaoScreen(
             evolucaoService: widget.evolucaoService,
-            aoSelecionarAba: _aoSelecionarAba,
             aoVoltar: () => setState(() => _subTela = null),
           );
       }
@@ -339,7 +342,8 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
                 // Banner de Mensagens Não Lidas (se houver)
                 if (_naoLidas > 0) ...[
                   Container(
-                    margin: const EdgeInsets.only(bottom: AppSizes.espacoEntreCards),
+                    margin: const EdgeInsets.only(
+                        bottom: AppSizes.espacoEntreCards),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [AppColors.paletaRoxo, Color(0xFF6B21A8)],
@@ -356,7 +360,8 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.cardRadius),
                         onTap: _abrirMeuNutri,
                         child: Padding(
                           padding: const EdgeInsets.all(14),
@@ -368,8 +373,10 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
                                   color: Colors.white.withValues(alpha: 0.2),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.mark_chat_unread_rounded,
-                                    color: Colors.white, size: 20),
+                                child: const Icon(
+                                    Icons.mark_chat_unread_rounded,
+                                    color: Colors.white,
+                                    size: 20),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -387,14 +394,16 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
                                     Text(
                                       'Você tem $_naoLidas mensagem(ns) não lida(s). Toque para responder.',
                                       style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.9),
                                         fontSize: 11.5,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right, color: Colors.white),
+                              const Icon(Icons.chevron_right,
+                                  color: Colors.white),
                             ],
                           ),
                         ),
@@ -853,8 +862,6 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
     return ProgressoScreen(
       progressoService: widget.progressoService,
       aoAbrirEvolucao: _abrirEvolucao,
-      aoSelecionarAba: _aoSelecionarAba,
-      exibirBottomNav: false,
     );
   }
 
@@ -946,7 +953,6 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
           ),
           const SizedBox(height: AppSizes.espacoEntreCards),
         ],
-
         if (refeicoes.isEmpty)
           const MvnCard(
             padding: EdgeInsets.symmetric(vertical: 26, horizontal: 16),
@@ -958,7 +964,8 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
                 Text(
                   'Nenhuma refeição planejada para hoje.\nSeu nutricionista ainda não montou este dia do plano.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: AppColors.fonteSubtitulo),
+                  style:
+                      TextStyle(fontSize: 13, color: AppColors.fonteSubtitulo),
                 ),
               ],
             ),
@@ -971,7 +978,6 @@ class _PacienteHomeScreenState extends State<PacienteHomeScreen> {
             ),
             const SizedBox(height: AppSizes.espacoEntreCards),
           ],
-
         BotaoGradiente(
           texto: 'VER PLANO SEMANAL',
           icone: Icons.calendar_view_week_rounded,
@@ -1026,7 +1032,8 @@ class _CardAtalho extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             border: escuro
                 ? Border.all(color: AppColors.bordaEscura, width: 1)
-                : Border.all(color: AppColors.bordaClara.withValues(alpha: 0.5)),
+                : Border.all(
+                    color: AppColors.bordaClara.withValues(alpha: 0.5)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1091,7 +1098,8 @@ class _CartaoRefeicao extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: concluida ? AppColors.paletaVerde : Colors.transparent,
                 border: Border.all(
-                  color: concluida ? AppColors.paletaVerde : AppColors.bordaCinza,
+                  color:
+                      concluida ? AppColors.paletaVerde : AppColors.bordaCinza,
                   width: 2,
                 ),
               ),
@@ -1140,9 +1148,9 @@ class _CartaoRefeicao extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
-                    color: escuro ? AppColors.paletaClaro : AppColors.fonteTitulo,
-                    decoration:
-                        concluida ? TextDecoration.lineThrough : null,
+                    color:
+                        escuro ? AppColors.paletaClaro : AppColors.fonteTitulo,
+                    decoration: concluida ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1214,7 +1222,16 @@ class _PlanoSemanalScreenState extends State<PlanoSemanalScreen> {
   @override
   void initState() {
     super.initState();
-    const mapa = ['', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+    const mapa = [
+      '',
+      'segunda',
+      'terca',
+      'quarta',
+      'quinta',
+      'sexta',
+      'sabado',
+      'domingo'
+    ];
     _diaSelecionado = mapa[DateTime.now().weekday];
     _carregar();
   }
@@ -1249,9 +1266,7 @@ class _PlanoSemanalScreenState extends State<PlanoSemanalScreen> {
   @override
   Widget build(BuildContext context) {
     final escuro = Theme.of(context).brightness == Brightness.dark;
-    final dia = _plano?.dias
-        .where((d) => d.dia == _diaSelecionado)
-        .firstOrNull;
+    final dia = _plano?.dias.where((d) => d.dia == _diaSelecionado).firstOrNull;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -1536,7 +1551,8 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Remover', style: TextStyle(color: AppColors.vermelho)),
+            child: const Text('Remover',
+                style: TextStyle(color: AppColors.vermelho)),
           ),
         ],
       ),
@@ -1545,11 +1561,13 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
     if (confirmado != true) return;
 
     try {
-      await widget.cardapioService.removerItemListaCompras(item.id ?? item.nome);
+      await widget.cardapioService
+          .removerItemListaCompras(item.id ?? item.nome);
       await _carregar();
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.mensagem)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.mensagem)));
     }
   }
 
@@ -1573,7 +1591,8 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Row(
             children: [
-              Icon(Icons.add_shopping_cart_rounded, color: AppColors.paletaVerde),
+              Icon(Icons.add_shopping_cart_rounded,
+                  color: AppColors.paletaVerde),
               SizedBox(width: 8),
               Text('Adicionar Item', style: TextStyle(fontSize: 16)),
             ],
@@ -1593,7 +1612,8 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: qtdController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: 'Quantidade aproximada (g ou ml)',
                   hintText: 'Ex: 250',
@@ -1601,13 +1621,16 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text('Categoria:', style: TextStyle(fontSize: 12, color: AppColors.textoSuave)),
+              const Text('Categoria:',
+                  style: TextStyle(fontSize: 12, color: AppColors.textoSuave)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 initialValue: categoria,
                 decoration: const InputDecoration(isDense: true),
                 items: categoriasDisponiveis
-                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat, style: const TextStyle(fontSize: 13))))
+                    .map((cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat, style: const TextStyle(fontSize: 13))))
                     .toList(),
                 onChanged: (val) {
                   if (val != null) setDialogState(() => categoria = val);
@@ -1643,7 +1666,9 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
     }
 
     final nome = nomeController.text.trim();
-    final qtd = double.tryParse(qtdController.text.replaceAll(',', '.').trim()) ?? 100.0;
+    final qtd =
+        double.tryParse(qtdController.text.replaceAll(',', '.').trim()) ??
+            100.0;
     nomeController.dispose();
     qtdController.dispose();
 
@@ -1663,7 +1688,8 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
       );
     } on ApiException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.mensagem)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.mensagem)));
     }
   }
 
@@ -1707,7 +1733,8 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
                     : _itens.isEmpty
                         ? Center(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
                               child: Text(
                                 'Sua lista de compras está vazia.\nUse o botão abaixo para adicionar novos itens.',
                                 textAlign: TextAlign.center,
@@ -1745,7 +1772,9 @@ class _ListaComprasScreenState extends State<ListaComprasScreen> {
                                     item: item,
                                     comprado: _comprados.contains(item.nome),
                                     aoAlternar: () => _alternarItem(item),
-                                    aoExcluir: item.manual ? () => _removerItem(item) : null,
+                                    aoExcluir: item.manual
+                                        ? () => _removerItem(item)
+                                        : null,
                                   ),
                                 const SizedBox(height: 16),
                               ],
@@ -1782,7 +1811,9 @@ class _ItemCompra extends StatelessWidget {
         color: escuro ? AppColors.paletaEscuroCard : AppColors.branco,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: escuro ? AppColors.bordaEscura : AppColors.bordaClara.withValues(alpha: 0.5),
+          color: escuro
+              ? AppColors.bordaEscura
+              : AppColors.bordaClara.withValues(alpha: 0.5),
         ),
       ),
       child: Row(
@@ -1811,14 +1842,18 @@ class _ItemCompra extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: escuro ? AppColors.paletaClaro : AppColors.fonteTitulo,
+                    color:
+                        escuro ? AppColors.paletaClaro : AppColors.fonteTitulo,
                     decoration: comprado ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 if (item.manual)
                   const Text(
                     'Item personalizado',
-                    style: TextStyle(fontSize: 10.5, color: AppColors.paletaRoxo, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        color: AppColors.paletaRoxo,
+                        fontWeight: FontWeight.bold),
                   ),
               ],
             ),
@@ -1837,7 +1872,8 @@ class _ItemCompra extends StatelessWidget {
           if (aoExcluir != null) ...[
             const SizedBox(width: 4),
             IconButton(
-              icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.vermelho),
+              icon: const Icon(Icons.delete_outline,
+                  size: 18, color: AppColors.vermelho),
               onPressed: aoExcluir,
               tooltip: 'Remover item',
             ),
@@ -1947,7 +1983,8 @@ class _MinhasReceitasScreenState extends State<MinhasReceitasScreen> {
               onPressed: _compartilhar,
               icon: const Icon(Icons.add_rounded, color: Colors.white),
               label: const Text('Compartilhar receita',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
       body: Column(
         children: [
@@ -1970,7 +2007,8 @@ class _MinhasReceitasScreenState extends State<MinhasReceitasScreen> {
                     : _receitas.isEmpty
                         ? Center(
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
                               child: Text(
                                 'Você ainda não compartilhou receitas.\n'
                                 'Toque em "Compartilhar receita" para enviar '
@@ -2008,8 +2046,7 @@ class _MinhasReceitasScreenState extends State<MinhasReceitasScreen> {
                                                   receita.nome,
                                                   style: TextStyle(
                                                     fontSize: 14.5,
-                                                    fontWeight:
-                                                        FontWeight.w700,
+                                                    fontWeight: FontWeight.w700,
                                                     color: escuro
                                                         ? AppColors.paletaClaro
                                                         : AppColors.fonteTitulo,
@@ -2029,7 +2066,8 @@ class _MinhasReceitasScreenState extends State<MinhasReceitasScreen> {
                                             style: TextStyle(
                                               fontSize: 11.5,
                                               color: escuro
-                                                  ? AppColors.fonteSubtituloClaro
+                                                  ? AppColors
+                                                      .fonteSubtituloClaro
                                                   : AppColors.fontePlaceholder,
                                             ),
                                           ),
@@ -2078,8 +2116,7 @@ class CompartilharReceitaScreen extends StatefulWidget {
       _CompartilharReceitaScreenState();
 }
 
-class _CompartilharReceitaScreenState
-    extends State<CompartilharReceitaScreen> {
+class _CompartilharReceitaScreenState extends State<CompartilharReceitaScreen> {
   final _nomeController = TextEditingController();
   final _modoController = TextEditingController();
   final _quantidadeController = TextEditingController();
@@ -2164,8 +2201,7 @@ class _CompartilharReceitaScreenState
       setState(() => _enviando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(erro.mensagem),
-            backgroundColor: AppColors.vermelho),
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
       );
     }
   }
@@ -2282,7 +2318,8 @@ class _CompartilharReceitaScreenState
                                       ),
                                       trailing: marcado
                                           ? const Icon(Icons.check_rounded,
-                                              color: AppColors.paletaVerde, size: 18)
+                                              color: AppColors.paletaVerde,
+                                              size: 18)
                                           : null,
                                       onTap: () => setState(
                                           () => _selecionado = alimento),

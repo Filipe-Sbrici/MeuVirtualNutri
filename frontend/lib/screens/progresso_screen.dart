@@ -8,7 +8,7 @@
 ///     "Peso atual: 68.1kg" e a barra de progresso verde.
 ///   - Botao roxo "+ REGISTRAR PESO".
 ///   - Cartao "Historico de Peso" com lista rolavel e botao "x".
-///   - Barra de navegacao inferior com "Progresso" ativo.
+///   - Navegacao inferior fornecida pela tela hospedeira do paciente.
 library;
 
 import 'package:flutter/material.dart';
@@ -17,7 +17,6 @@ import '../core/api_client.dart';
 import '../core/theme.dart';
 import '../models/progresso.dart';
 import '../services/api_services.dart';
-import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
 class ProgressoScreen extends StatefulWidget {
@@ -25,18 +24,12 @@ class ProgressoScreen extends StatefulWidget {
     super.key,
     required this.progressoService,
     this.aoAbrirEvolucao,
-    this.aoSelecionarAba,
-    this.exibirBottomNav = false,
   });
 
   final ProgressoService progressoService;
 
   /// Abre a tela de Evolucao (graficos).
   final VoidCallback? aoAbrirEvolucao;
-
-  final ValueChanged<AbaNavegacao>? aoSelecionarAba;
-
-  final bool exibirBottomNav;
 
   @override
   State<ProgressoScreen> createState() => _ProgressoScreenState();
@@ -91,9 +84,8 @@ class _ProgressoScreenState extends State<ProgressoScreen> {
     final dias = _periodo == 'semanal' ? 7 : 30;
     final limite = DateTime.now().subtract(Duration(days: dias));
 
-    final filtrado = historico
-        .where((r) => !r.dataRegistro.isBefore(limite))
-        .toList();
+    final filtrado =
+        historico.where((r) => !r.dataRegistro.isBefore(limite)).toList();
 
     // Com poucos registros no periodo, mostra o historico completo para
     // que a lista nunca apareca vazia sem motivo.
@@ -168,20 +160,20 @@ class _ProgressoScreenState extends State<ProgressoScreen> {
                   : AppColors.fonteSubtitulo,
             ),
           ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(contexto).pop(false),
-            child: const Text('Cancelar',
-                style: TextStyle(color: AppColors.fonteSubtitulo)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(contexto).pop(true),
-            child: const Text('Remover',
-                style: TextStyle(
-                    color: AppColors.vermelho, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(contexto).pop(false),
+              child: const Text('Cancelar',
+                  style: TextStyle(color: AppColors.fonteSubtitulo)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(contexto).pop(true),
+              child: const Text('Remover',
+                  style: TextStyle(
+                      color: AppColors.vermelho, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
       },
     );
 
@@ -228,12 +220,6 @@ class _ProgressoScreenState extends State<ProgressoScreen> {
           Expanded(child: _corpo()),
         ],
       ),
-      bottomNavigationBar: (widget.exibirBottomNav && widget.aoSelecionarAba != null)
-          ? BottomNav(
-              abaAtiva: AbaNavegacao.progresso,
-              aoSelecionar: widget.aoSelecionarAba,
-            )
-          : null,
     );
   }
 
@@ -316,8 +302,7 @@ class _DialogoRegistroPesoState extends State<_DialogoRegistroPeso> {
     final escuro = Theme.of(context).brightness == Brightness.dark;
 
     return AlertDialog(
-      backgroundColor:
-          escuro ? AppColors.paletaEscuroCard : AppColors.branco,
+      backgroundColor: escuro ? AppColors.paletaEscuroCard : AppColors.branco,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         side: escuro
@@ -514,9 +499,8 @@ class _CartaoResumo extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12.5,
-                color: escuro
-                    ? AppColors.paletaLilasSuave
-                    : AppColors.paletaRoxo,
+                color:
+                    escuro ? AppColors.paletaLilasSuave : AppColors.paletaRoxo,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -540,8 +524,8 @@ class _CartaoResumo extends StatelessWidget {
                 value: (resumo.percentualMeta! / 100).clamp(0.0, 1.0),
                 minHeight: 10,
                 backgroundColor: AppColors.cinzaTrilha,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.paletaVerde),
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(AppColors.paletaVerde),
               ),
             ),
           ],
@@ -551,10 +535,9 @@ class _CartaoResumo extends StatelessWidget {
   }
 
   /// 65.0 -> "65" | 64.5 -> "64.5" (como no prototipo).
-  static String _semZeroInutil(double valor) =>
-      valor == valor.roundToDouble()
-          ? valor.toStringAsFixed(0)
-          : valor.toStringAsFixed(1);
+  static String _semZeroInutil(double valor) => valor == valor.roundToDouble()
+      ? valor.toStringAsFixed(0)
+      : valor.toStringAsFixed(1);
 }
 
 /// Cartao "Historico de Peso" com lista rolavel interna.

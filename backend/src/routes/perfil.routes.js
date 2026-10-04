@@ -19,6 +19,9 @@ router.post('/restricoes', autenticar, perfilController.salvarRestricoes);
 router.post('/tutorial', autenticar, perfilController.concluirTutorial);
 
 // Edicao de perfil (tela 4.5.19).
+router.get('/foto', autenticar, perfilController.obterFotoPerfil);
+router.put('/foto', autenticar, perfilController.salvarFotoPerfil);
+router.delete('/foto', autenticar, perfilController.removerFotoPerfil);
 router.put('/perfil', autenticar, perfilController.atualizarPerfil);
 router.delete('/perfil', autenticar, perfilController.excluirPerfil);
 

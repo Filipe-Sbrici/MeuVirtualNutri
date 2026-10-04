@@ -15,7 +15,6 @@ import '../core/api_client.dart';
 import '../core/theme.dart';
 import '../models/evolucao.dart';
 import '../services/api_services.dart';
-import '../widgets/bottom_nav.dart';
 import '../widgets/common.dart';
 
 class EvolucaoScreen extends StatefulWidget {
@@ -24,7 +23,6 @@ class EvolucaoScreen extends StatefulWidget {
     required this.evolucaoService,
     this.uidPaciente,
     this.nomePaciente,
-    this.aoSelecionarAba,
     this.aoVoltar,
   });
 
@@ -33,7 +31,6 @@ class EvolucaoScreen extends StatefulWidget {
   /// Vazio = paciente logado; preenchido = paciente do nutricionista.
   final String? uidPaciente;
   final String? nomePaciente;
-  final ValueChanged<AbaNavegacao>? aoSelecionarAba;
   final VoidCallback? aoVoltar;
 
   @override
@@ -109,14 +106,6 @@ class _EvolucaoScreenState extends State<EvolucaoScreen> {
           Expanded(child: _corpo()),
         ],
       ),
-      // Evolucao pertence ao modulo de Progresso no prototipo. Quando
-      // aberta pelo painel do nutricionista, sem barra inferior.
-      bottomNavigationBar: widget.aoSelecionarAba == null
-          ? null
-          : BottomNav(
-              abaAtiva: AbaNavegacao.progresso,
-              aoSelecionar: widget.aoSelecionarAba,
-            ),
     );
   }
 

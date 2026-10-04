@@ -225,7 +225,30 @@ async function buscarPorEmail(email) {
 
 /** Exclui o documento de perfil (usado na exclusao da conta). */
 async function excluir(uid) {
-  await db().collection(COLECAO).doc(uid).delete();
+  const ref = db().collection(COLECAO).doc(uid);
+  await ref.collection('arquivos').doc('fotoPerfil').delete();
+  await ref.delete();
+}
+
+/** Foto privada armazenada fora do documento de perfil para respeitar o limite de 1 MiB. */
+async function buscarFotoPerfil(uid) {
+  const doc = await db().collection(COLECAO).doc(uid)
+    .collection('arquivos').doc('fotoPerfil').get();
+  return doc.exists ? doc.data() : null;
+}
+
+async function salvarFotoPerfil(uid, foto) {
+  await db().collection(COLECAO).doc(uid)
+    .collection('arquivos').doc('fotoPerfil').set({
+      mimeType: foto.mimeType,
+      dadosBase64: foto.dadosBase64,
+      atualizadoEm: new Date(),
+    });
+}
+
+async function removerFotoPerfil(uid) {
+  await db().collection(COLECAO).doc(uid)
+    .collection('arquivos').doc('fotoPerfil').delete();
 }
 
 module.exports = {
@@ -243,5 +266,8 @@ module.exports = {
   nutricionistaDoPaciente,
   contarPorEmail,
   excluir,
+  buscarFotoPerfil,
+  salvarFotoPerfil,
+  removerFotoPerfil,
   paraPerfil,
 };

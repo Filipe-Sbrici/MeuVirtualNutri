@@ -172,6 +172,62 @@ async function atualizarPerfil(req, res, next) {
   }
 }
 
+/** GET /api/perfil/foto - imagem do proprio usuario autenticado. */
+async function obterFotoPerfil(req, res, next) {
+  try {
+    const foto = await usuarioRepo.buscarFotoPerfil(req.usuario.uid);
+    res.json({ sucesso: true, dados: { foto: foto ? {
+      mimeType: foto.mimeType,
+      dadosBase64: foto.dadosBase64,
+    } : null } });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+/** PUT /api/perfil/foto - salva foto do proprio usuario autenticado. */
+async function salvarFotoPerfil(req, res, next) {
+  try {
+    const { mimeType, dadosBase64 } = req.body || {};
+    const tipos = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maximo = 512 * 1024;
+    const maxBase64 = 4 * Math.ceil(maximo / 3);
+    if (typeof mimeType !== 'string' || !tipos.has(mimeType)) {
+      throw AppError.badRequest('Formato invalido. Envie JPG, PNG ou WebP.');
+    }
+    if (typeof dadosBase64 !== 'string' || dadosBase64.length === 0
+      || dadosBase64.length > maxBase64
+      || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(dadosBase64)) {
+      throw AppError.badRequest('Imagem invalida ou maior que 512 KiB.');
+    }
+    const bytes = Buffer.from(dadosBase64, 'base64');
+    if (bytes.length === 0 || bytes.length > maximo || bytes.toString('base64') !== dadosBase64
+      || !assinaturaCorresponde(mimeType, bytes)) {
+      throw AppError.badRequest('O conteudo da imagem nao corresponde ao formato informado.');
+    }
+    await usuarioRepo.salvarFotoPerfil(req.usuario.uid, { mimeType, dadosBase64 });
+    res.json({ sucesso: true, dados: { salva: true } });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function removerFotoPerfil(req, res, next) {
+  try {
+    await usuarioRepo.removerFotoPerfil(req.usuario.uid);
+    res.json({ sucesso: true, dados: { removida: true } });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+function assinaturaCorresponde(tipo, bytes) {
+  if (tipo === 'image/jpeg') return bytes.length >= 3 && bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  if (tipo === 'image/png') return bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+  if (tipo === 'image/webp') return bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP';
+  return false;
+}
+
 /** DELETE /api/perfil - exclusao da conta (perfil; auth e apagado pelo Flutter). */
 async function excluirPerfil(req, res, next) {
   try {
@@ -205,5 +261,8 @@ module.exports = {
   salvarRestricoes,
   concluirTutorial,
   atualizarPerfil,
+  obterFotoPerfil,
+  salvarFotoPerfil,
+  removerFotoPerfil,
   excluirPerfil,
 };

@@ -14,19 +14,22 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/api_client.dart';
 import '../core/theme.dart';
 import '../models/usuario.dart';
 import '../services/api_services.dart';
 import '../services/mvn_services.dart';
+import '../services/foto_perfil_service.dart';
 import '../widgets/common.dart';
+import '../widgets/foto_perfil.dart';
 import 'aparencia_acessibilidade_screen.dart';
 import 'dados_perfil_screen.dart';
 import 'notificacoes_config_screen.dart';
 import 'perfil_screen.dart';
 
-class ConfiguracoesScreen extends StatelessWidget {
+class ConfiguracoesScreen extends StatefulWidget {
   const ConfiguracoesScreen({
     super.key,
     required this.usuario,
@@ -43,7 +46,76 @@ class ConfiguracoesScreen extends StatelessWidget {
   final VoidCallback aoFazerLogout;
 
   @override
+  State<ConfiguracoesScreen> createState() => _ConfiguracoesScreenState();
+}
+
+class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
+  late Usuario _usuario;
+  bool _enviandoFoto = false;
+  int _fotoRevisao = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _usuario = widget.usuario;
+  }
+
+  AuthService get authService => widget.authService;
+  OnboardingService get onboardingService => widget.onboardingService;
+  void Function(Usuario) get aoAtualizarUsuario => widget.aoAtualizarUsuario;
+  VoidCallback get aoFazerLogout => widget.aoFazerLogout;
+
+  @override
+  void didUpdateWidget(covariant ConfiguracoesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.usuario != widget.usuario) _usuario = widget.usuario;
+  }
+
+  Future<void> _alterarFoto() async {
+    if (_enviandoFoto) return;
+    setState(() => _enviandoFoto = true);
+    try {
+      final alterada = await FotoPerfilService().selecionarEnviarEAtualizar(
+        usuario: _usuario,
+        onboardingService: widget.onboardingService,
+      );
+      if (!mounted || !alterada) return;
+      setState(() => _fotoRevisao++);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto de perfil atualizada.')),
+      );
+    } on ApiException catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(erro.mensagem), backgroundColor: AppColors.vermelho),
+      );
+    } on PlatformException catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Nao foi possivel selecionar a imagem: ${erro.message ?? erro.code}'),
+          backgroundColor: AppColors.vermelho,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Nao foi possivel atualizar a foto. Verifique sua conexao e tente novamente.'),
+          backgroundColor: AppColors.vermelho,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _enviandoFoto = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final usuario = _usuario;
     final tema = Theme.of(context);
     final escuro = tema.brightness == Brightness.dark;
     final ehNutri = usuario.ehNutricionista;
@@ -95,22 +167,40 @@ class ConfiguracoesScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  child: CircleAvatar(
-                    radius: 32,
-                    backgroundColor:
-                        escuro ? const Color(0xFF21262D) : AppColors.paletaVerdeSuave,
-                    child: Text(
-                      usuario.nome.isNotEmpty
-                          ? usuario.nome.trim()[0].toUpperCase()
-                          : 'U',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: escuro
-                            ? AppColors.paletaLilasSuave
-                            : AppColors.paletaRoxo,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      FotoPerfil(
+                          nome: usuario.nome,
+                          uid: usuario.uid,
+                          onboardingService: widget.onboardingService,
+                          revisao: _fotoRevisao,
+                          raio: 32),
+                      Positioned(
+                        right: -4,
+                        bottom: -4,
+                        child: Material(
+                          color: AppColors.paletaRoxo,
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            onPressed: _enviandoFoto ? null : _alterarFoto,
+                            tooltip: 'Alterar foto de perfil',
+                            icon: _enviandoFoto
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white))
+                                : const Icon(Icons.camera_alt_rounded,
+                                    size: 16),
+                            color: Colors.white,
+                            constraints: const BoxConstraints.tightFor(
+                                width: 32, height: 32),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -211,8 +301,7 @@ class ConfiguracoesScreen extends StatelessWidget {
             icone: Icons.notifications_none_rounded,
             titulo: 'Notificações',
             subtitulo: 'Mensagens, consultas e personalização',
-            corIcone:
-                escuro ? AppColors.paletaVerde : AppColors.paletaRoxo,
+            corIcone: escuro ? AppColors.paletaVerde : AppColors.paletaRoxo,
             corFundoIcone: escuro
                 ? AppColors.paletaVerde.withValues(alpha: 0.15)
                 : AppColors.paletaRoxo.withValues(alpha: 0.12),
@@ -415,7 +504,8 @@ class ConfiguracoesScreen extends StatelessWidget {
         content: Text(
           'Deseja realmente sair da sua conta no aplicativo?',
           style: TextStyle(
-            color: escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
+            color:
+                escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
           ),
         ),
         actions: [
@@ -424,7 +514,9 @@ class ConfiguracoesScreen extends StatelessWidget {
             child: Text(
               'Cancelar',
               style: TextStyle(
-                color: escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
+                color: escuro
+                    ? AppColors.fonteSubtituloClaro
+                    : AppColors.textoSuave,
               ),
             ),
           ),
@@ -435,7 +527,8 @@ class ConfiguracoesScreen extends StatelessWidget {
             },
             child: const Text(
               'Sair',
-              style: TextStyle(color: AppColors.vermelho, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppColors.vermelho, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -466,7 +559,8 @@ class ConfiguracoesScreen extends StatelessWidget {
         content: Text(
           'Esta ação é irreversível. Todos os seus dados, histórico, planos e consultas serão permanentemente excluídos.',
           style: TextStyle(
-            color: escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
+            color:
+                escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
           ),
         ),
         actions: [
@@ -475,7 +569,9 @@ class ConfiguracoesScreen extends StatelessWidget {
             child: Text(
               'Cancelar',
               style: TextStyle(
-                color: escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave,
+                color: escuro
+                    ? AppColors.fonteSubtituloClaro
+                    : AppColors.textoSuave,
               ),
             ),
           ),
@@ -495,7 +591,8 @@ class ConfiguracoesScreen extends StatelessWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Falha ao excluir a conta. Tente novamente.'),
+                      content:
+                          Text('Falha ao excluir a conta. Tente novamente.'),
                     ),
                   );
                 }
@@ -503,7 +600,8 @@ class ConfiguracoesScreen extends StatelessWidget {
             },
             child: const Text(
               'Excluir Definitivamente',
-              style: TextStyle(color: AppColors.vermelho, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppColors.vermelho, fontWeight: FontWeight.bold),
             ),
           ),
         ],

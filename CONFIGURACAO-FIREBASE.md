@@ -1,6 +1,6 @@
 # Configuração do Firebase — Meu Virtual Nutri
 
-Guia completo para conectar o projeto ao Firebase (Authentication + Cloud Firestore), tanto para **desenvolvimento com emuladores** quanto para **produção com projeto real**.
+Guia completo para conectar o projeto ao Firebase Authentication e Cloud Firestore, tanto para **desenvolvimento com emuladores** quanto para **produção com projeto real**.
 
 ---
 
@@ -19,6 +19,8 @@ Não usamos: Realtime Database (Firestore é o sucessor recomendado), Cloud Mess
 Flutter ──► Firebase Authentication (SDK cliente)
 Flutter ──► REST/JSON ──► Node.js ──► Admin SDK ──► Firestore (regras fechadas p/ clientes)
 ```
+
+Fotos de perfil são armazenadas em `usuarios/{uid}/arquivos/fotoPerfil` no Firestore. O app envia e recupera a foto pela API autenticada; a API deriva o UID do token validado e nunca aceita o UID do cliente para escolher a conta. São aceitos JPEG, PNG e WebP de até 512 KiB binários. O conteúdo fica em subdocumento próprio, sem ser incluído nas respostas de perfil. O limite reduzido mantém o documento abaixo do limite de 1 MiB do Firestore. Não é necessário habilitar nem configurar Firebase Storage.
 
 ---
 

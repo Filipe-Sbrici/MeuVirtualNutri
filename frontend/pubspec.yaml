@@ -18,6 +18,7 @@ dependencies:
   fl_chart: ^0.69.0
   firebase_core: ^4.14.0
   firebase_auth: ^6.6.1
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:

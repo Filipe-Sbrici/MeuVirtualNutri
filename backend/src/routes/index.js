@@ -41,6 +41,7 @@ router.get('/', (req, res) => {
       perfilSessao: 'GET /api/auth/perfil',
       cadastroPaciente: 'POST /api/auth/cadastro/paciente',
       cadastroNutricionista: 'POST /api/auth/cadastro/nutricionista',
+      fotoPerfil: 'GET|PUT|DELETE /api/perfil/foto',
       // Onboarding
       nutricionistas: 'GET /api/onboarding/nutricionistas',
       onboardingDados: 'POST /api/onboarding/dados-pessoais|estilo-vida|perfil-alimentar|restricoes|tutorial',

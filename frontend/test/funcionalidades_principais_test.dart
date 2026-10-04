@@ -46,6 +46,7 @@ import 'package:mvn_app/services/api_services.dart';
 import 'package:mvn_app/services/chat_service.dart';
 import 'package:mvn_app/services/mvn_services.dart';
 import 'package:mvn_app/widgets/bottom_nav.dart';
+import 'package:mvn_app/widgets/foto_perfil.dart';
 
 import 'fixtures.dart';
 
@@ -117,10 +118,37 @@ Future<void> _rolarAte(WidgetTester tester, Finder alvo) async {
 }
 
 void main() {
+  testWidgets('Foto de perfil ausente mostra o fallback da conta',
+      (tester) async {
+    final api = ApiClient(
+        cliente: MockClient((_) async => http.Response(
+              jsonEncode({
+                'sucesso': true,
+                'dados': {'foto': null}
+              }),
+              200,
+            )));
+    final onboarding = OnboardingService(api);
+    await tester.pumpWidget(_envolverWidget(Scaffold(
+      body: FotoPerfil(
+        nome: 'Paciente Teste',
+        uid: 'paciente_teste_id',
+        onboardingService: onboarding,
+        raio: 32,
+      ),
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FotoPerfil), findsOneWidget);
+    expect(find.text('P'), findsOneWidget);
+  });
+
   group('Funcionalidades Principais - GERAL', () {
-    testWidgets('1. Login com perfil de Nutricionista (nteste@gmail.com / 123456)',
+    testWidgets(
+        '1. Login com perfil de Nutricionista (nteste@gmail.com / 123456)',
         (tester) async {
-      final api = ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
+      final api =
+          ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
       final authService = MockAuthServiceParaTeste(api);
       Usuario? usuarioLogado;
 
@@ -134,7 +162,8 @@ void main() {
       expect(find.byType(TextFormField), findsNWidgets(2));
 
       // Preenche os dados do Nutricionista
-      await tester.enterText(find.byType(TextFormField).first, 'nteste@gmail.com');
+      await tester.enterText(
+          find.byType(TextFormField).first, 'nteste@gmail.com');
       await tester.enterText(find.byType(TextFormField).last, '123456');
       await tester.pump();
 
@@ -151,7 +180,8 @@ void main() {
 
     testWidgets('2. Login com perfil de Paciente (pteste@gmail.com / 123456)',
         (tester) async {
-      final api = ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
+      final api =
+          ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
       final authService = MockAuthServiceParaTeste(api);
       Usuario? usuarioLogado;
 
@@ -162,7 +192,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Preenche os dados do Paciente
-      await tester.enterText(find.byType(TextFormField).first, 'pteste@gmail.com');
+      await tester.enterText(
+          find.byType(TextFormField).first, 'pteste@gmail.com');
       await tester.enterText(find.byType(TextFormField).last, '123456');
       await tester.pump();
 
@@ -183,7 +214,8 @@ void main() {
       final api = ApiClient(
         cliente: MockClient((req) async {
           if (req.method == 'PUT' && req.url.path.contains('/perfil/perfil')) {
-            dadosAtualizadosEnviados = jsonDecode(req.body) as Map<String, dynamic>;
+            dadosAtualizadosEnviados =
+                jsonDecode(req.body) as Map<String, dynamic>;
             return http.Response(
               '{"sucesso":true,"dados":{"perfil":{"uid":"${kNutriUsuario.uid}",'
               '"nome":"${dadosAtualizadosEnviados!['nome']}",'
@@ -222,7 +254,8 @@ void main() {
     });
 
     testWidgets('4. Mudar tema do app (Claro / Escuro)', (tester) async {
-      await tester.pumpWidget(_envolverWidget(const AparenciaAcessibilidadeScreen()));
+      await tester
+          .pumpWidget(_envolverWidget(const AparenciaAcessibilidadeScreen()));
       await tester.pumpAndSettle();
 
       expect(find.text('Aparência e Acessibilidade'), findsOneWidget);
@@ -276,6 +309,64 @@ void main() {
       expect(abaSelecionada, AbaNavegacao.perfil);
     });
 
+    testWidgets(
+        'Progresso usa apenas a barra da tela principal e permite navegar',
+        (tester) async {
+      final api = ApiClient(
+        cliente: MockClient((req) async {
+          if (req.url.path.endsWith('/progresso')) {
+            return http.Response(kProgressoJson, 200,
+                headers: {'content-type': 'application/json; charset=utf-8'});
+          }
+          if (req.url.path.endsWith('/evolucao')) {
+            return http.Response(kEvolucaoJson, 200,
+                headers: {'content-type': 'application/json; charset=utf-8'});
+          }
+          return http.Response(
+            '{"sucesso":true,"dados":{}}',
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+      final authService = MockAuthServiceParaTeste(api);
+
+      await tester.pumpWidget(_envolverWidget(PacienteHomeScreen(
+        usuario: kPacienteUsuario,
+        authService: authService,
+        onboardingService: OnboardingService(api),
+        chatService: ChatService(api),
+        progressoService: ProgressoService(api),
+        evolucaoService: EvolucaoService(api),
+        cardapioService: CardapioService(api),
+        aoAtualizarUsuario: (_) {},
+        aoFazerLogout: () {},
+      )));
+      await tester.pumpAndSettle();
+
+      final barra = find.byType(BottomNav);
+      expect(barra, findsOneWidget);
+      await tester.tap(find.descendant(
+        of: barra,
+        matching: find.text('Progresso'),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomNav), findsOneWidget);
+      expect(find.text('Peso atual: 68.1kg'), findsOneWidget);
+      await tester.tap(find.byTooltip('Ver evolucao'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomNav), findsOneWidget);
+      await tester.tap(find.descendant(
+        of: find.byType(BottomNav),
+        matching: find.text('Início'),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomNav), findsOneWidget);
+      expect(find.textContaining('Painel do Paciente'), findsOneWidget);
+      api.fechar();
+    });
+
     testWidgets('6. Mensagem de chat (Enviar mensagem)', (tester) async {
       bool mensagemEnviada = false;
 
@@ -285,7 +376,8 @@ void main() {
             return http.Response(kConversaJson, 200,
                 headers: {'content-type': 'application/json; charset=utf-8'});
           }
-          if (req.method == 'POST' && req.url.path.contains('/chat/mensagens')) {
+          if (req.method == 'POST' &&
+              req.url.path.contains('/chat/mensagens')) {
             final corpo = jsonDecode(req.body) as Map<String, dynamic>;
             if (corpo['mensagem'] == 'Olá nutricionista, tudo bem?') {
               mensagemEnviada = true;
@@ -318,7 +410,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifica balões existentes
-      expect(find.text('ola bom dia! ja atualizei seu cardapio da semana!'), findsOneWidget);
+      expect(find.text('ola bom dia! ja atualizei seu cardapio da semana!'),
+          findsOneWidget);
 
       // Digita nova mensagem
       final campoTexto = find.byType(TextField);
@@ -346,7 +439,8 @@ void main() {
             return http.Response(kProgressoJson, 200,
                 headers: {'content-type': 'application/json; charset=utf-8'});
           }
-          if (req.method == 'POST' && req.url.path.contains('/progresso/peso')) {
+          if (req.method == 'POST' &&
+              req.url.path.contains('/progresso/peso')) {
             final corpo = jsonDecode(req.body) as Map<String, dynamic>;
             if (corpo['peso'] == 67.8) {
               pesoRegistradoNaApi = true;
@@ -393,7 +487,8 @@ void main() {
 
       final api = ApiClient(
         cliente: MockClient((req) async {
-          if (req.method == 'POST' && req.url.path.contains('/minhas-receitas')) {
+          if (req.method == 'POST' &&
+              req.url.path.contains('/minhas-receitas')) {
             final corpo = jsonDecode(req.body) as Map<String, dynamic>;
             if (corpo['nome'] == 'Omelete Proteico' &&
                 (corpo['ingredientes'] as List).isNotEmpty) {
@@ -428,8 +523,8 @@ void main() {
       expect(find.text('Compartilhar receita'), findsOneWidget);
 
       // Preenche nome da receita
-      await tester.enterText(
-          find.widgetWithText(TextField, 'Nome da receita'), 'Omelete Proteico');
+      await tester.enterText(find.widgetWithText(TextField, 'Nome da receita'),
+          'Omelete Proteico');
 
       // Seleciona alimento
       await tester.tap(find.text('Ovo de Galinha'));
@@ -462,7 +557,8 @@ void main() {
 
     testWidgets('9. Sair da conta (Logout)', (tester) async {
       bool logoutExecutado = false;
-      final api = ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
+      final api =
+          ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
 
       await tester.pumpWidget(_envolverWidget(ConfiguracoesScreen(
         usuario: kPacienteUsuario,
@@ -539,9 +635,11 @@ void main() {
 
       final api = ApiClient(
         cliente: MockClient((req) async {
-          if (req.method == 'POST' && req.url.path.contains('/nutricionista/receitas')) {
+          if (req.method == 'POST' &&
+              req.url.path.contains('/nutricionista/receitas')) {
             final corpo = jsonDecode(req.body) as Map<String, dynamic>;
-            if (corpo['nome'] == 'Frango Fit' && (corpo['ingredientes'] as List).isNotEmpty) {
+            if (corpo['nome'] == 'Frango Fit' &&
+                (corpo['ingredientes'] as List).isNotEmpty) {
               receitaCriadaNaApi = true;
             }
             return http.Response('{"sucesso":true}', 200,
@@ -601,7 +699,8 @@ void main() {
 
       final api = ApiClient(
         cliente: MockClient((req) async {
-          if (req.method == 'POST' && req.url.path.contains('/nutricionista/orientacoes')) {
+          if (req.method == 'POST' &&
+              req.url.path.contains('/nutricionista/orientacoes')) {
             final corpo = jsonDecode(req.body) as Map<String, dynamic>;
             if (corpo['uidPaciente'] == 'paciente_ana_1' &&
                 corpo['categoria'] == 'positivo' &&
@@ -654,7 +753,8 @@ void main() {
         TextField,
         'Escreva a orientação para o paciente...',
       );
-      await tester.enterText(campoOrientacao, 'Ótima adesão ao plano! Parabéns.');
+      await tester.enterText(
+          campoOrientacao, 'Ótima adesão ao plano! Parabéns.');
       await tester.pump();
 
       // Clica em Enviar no diálogo

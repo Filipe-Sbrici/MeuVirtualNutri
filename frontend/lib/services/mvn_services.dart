@@ -12,6 +12,25 @@ class OnboardingService {
 
   final ApiClient _api;
 
+  /// Carrega a foto privada do usuario autenticado atual.
+  Future<Map<String, dynamic>?> carregarFotoPerfil() async {
+    final resposta = await _api.get('/perfil/foto');
+    final dados = resposta['dados'];
+    final foto = dados is Map ? dados['foto'] : null;
+    return foto is Map<String, dynamic> ? foto : null;
+  }
+
+  /// Salva a imagem codificada no documento Firestore do proprio usuario.
+  Future<void> salvarFotoPerfil({
+    required String mimeType,
+    required String dadosBase64,
+  }) async {
+    await _api.put('/perfil/foto', corpo: {
+      'mimeType': mimeType,
+      'dadosBase64': dadosBase64,
+    });
+  }
+
   /// Etapa 1: nutricionistas disponiveis.
   Future<List<NutricionistaResumo>> listarNutricionistas() async {
     final resposta = await _api.get('/onboarding/nutricionistas');
@@ -206,7 +225,8 @@ class CardapioService {
       'quantidade': quantidade,
       'unidade': unidade,
     });
-    return lerDados(resposta, (d) => ItemCompra.fromJson(d['item'] as Map<String, dynamic>));
+    return lerDados(resposta,
+        (d) => ItemCompra.fromJson(d['item'] as Map<String, dynamic>));
   }
 
   /// Remove item manual da lista de compras.
@@ -309,14 +329,17 @@ class NutricionistaService {
   }
 
   /// Consulta lista de compras do paciente (respeitando privacidade).
-  Future<Map<String, dynamic>> obterListaComprasPaciente(String uidPaciente) async {
-    final resposta = await _api.get('/nutricionista/pacientes/$uidPaciente/lista-compras');
+  Future<Map<String, dynamic>> obterListaComprasPaciente(
+      String uidPaciente) async {
+    final resposta =
+        await _api.get('/nutricionista/pacientes/$uidPaciente/lista-compras');
     return lerDados(resposta, (d) => d);
   }
 
   /// Plano do paciente para edicao (cria o primeiro se necessario).
   Future<Map<String, dynamic>> carregarPlano(String uidPaciente) async {
-    final resposta = await _api.get('/nutricionista/pacientes/$uidPaciente/plano');
+    final resposta =
+        await _api.get('/nutricionista/pacientes/$uidPaciente/plano');
     return lerDados(
       resposta,
       (dados) => dados,
@@ -496,4 +519,3 @@ class NutricionistaService {
     await _api.post('/consultas/$idConsulta/cancelar');
   }
 }
-
