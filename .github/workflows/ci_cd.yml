@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   frontend-ci:
@@ -53,11 +54,18 @@ jobs:
   cd-build:
     name: CD (Build e Publicação de Artefatos)
     needs: [frontend-ci, backend-ci]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repositório
         uses: actions/checkout@v4
+
+      - name: Configurar Java / JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
 
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
@@ -65,17 +73,43 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Instalar Dependências
+      - name: Instalar Dependências do Frontend
         working-directory: ./frontend
         run: flutter pub get
 
-      - name: Compilar
+      # -------------------------------------------------------------
+      # 1. Compilação da Aplicação Web e geração do arquivo ZIP
+      # -------------------------------------------------------------
+      - name: Compilar Aplicação Web
         working-directory: ./frontend
         run: flutter build web --release
 
-      - name: Upload dos Artefatos de Build
+      - name: Gerar Arquivo ZIP da Aplicação Web
+        run: |
+          cd frontend/build/web
+          zip -r ../../../mvn-aplicacao.zip . || python3 -m zipfile -c ../../../mvn-aplicacao.zip .
+
+      - name: Publicar Artefato - ZIP da Aplicação
         uses: actions/upload-artifact@v4
         with:
-          name: mvn-artifact
-          path: frontend/build/web/
+          name: mvn-aplicacao-zip
+          path: mvn-aplicacao.zip
+          retention-days: 14
+
+      # -------------------------------------------------------------
+      # 2. Compilação do APK Android para instalação no dispositivo
+      # -------------------------------------------------------------
+      - name: Compilar APK Android
+        working-directory: ./frontend
+        run: flutter build apk --release
+
+      - name: Preparar APK Android com Nome Amigável
+        run: |
+          cp frontend/build/app/outputs/flutter-apk/app-release.apk frontend/build/app/outputs/flutter-apk/MeuVirtualNutri.apk
+
+      - name: Publicar Artefato - APK Android
+        uses: actions/upload-artifact@v4
+        with:
+          name: mvn-aplicativo-android-apk
+          path: frontend/build/app/outputs/flutter-apk/MeuVirtualNutri.apk
           retention-days: 14

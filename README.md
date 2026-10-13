@@ -207,7 +207,9 @@ cd backend && npm run e2e
 ### Pipeline Automatizado (GitHub Actions):
 - **Frontend CI:** Execução automática da suíte completa de testes no Flutter (`flutter test --coverage`).
 - **Backend CI:** Validação de rotas, middlewares e *smoke tests* no Node.js (`npm test`).
-- **CD (Web Release):** Compilação automática da aplicação Web (`flutter build web --release`) e publicação dos artefatos em cada push na branch principal.
+- **CD (Geração de Artefatos):** Compilação e publicação automática de **2 arquivos de release** para download:
+  1. **ZIP da Aplicação (`mvn-aplicacao-zip`):** Versão Web compilada e compactada (`mvn-aplicacao.zip`) pronta para hospedagem.
+  2. **APK do Aplicativo (`mvn-aplicativo-android-apk`):** Pacote instalável `MeuVirtualNutri.apk` para execução em dispositivos Android.
 
 ---
 
