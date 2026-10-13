@@ -30,13 +30,19 @@ async function validarContato(uidContato, usuario) {
   const contato = await usuarioRepo.buscarResumo(uidContato);
   if (!contato) throw AppError.notFound('Contato nao encontrado.');
 
-  const vinculado =
-    usuario.tipoUsuario === 'paciente'
-      ? contato.tipoUsuario === 'nutricionista' &&
-        usuario.idNutricionista === uidContato
-      : contato.tipoUsuario === 'paciente' &&
-        (await usuarioRepo.buscarPorUid(uidContato))?.idNutricionista ===
-          usuario.uid;
+  let vinculado = false;
+  if (usuario.tipoUsuario === 'paciente') {
+    vinculado =
+      contato.tipoUsuario === 'nutricionista' &&
+      usuario.idNutricionista === uidContato &&
+      usuario.statusVinculo === 'aprovado';
+  } else if (usuario.tipoUsuario === 'nutricionista') {
+    const pacienteAlvo = await usuarioRepo.buscarPorUid(uidContato);
+    vinculado =
+      contato.tipoUsuario === 'paciente' &&
+      pacienteAlvo?.idNutricionista === usuario.uid &&
+      pacienteAlvo?.statusVinculo === 'aprovado';
+  }
 
   if (!vinculado) {
     throw AppError.forbidden(

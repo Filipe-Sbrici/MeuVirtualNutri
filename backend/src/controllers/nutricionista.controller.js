@@ -165,10 +165,10 @@ async function vincularPaciente(req, res, next) {
       throw AppError.conflict('Paciente ja vinculado a outro nutricionista.');
     }
 
-    await usuarioRepo.vincularNutricionista(paciente.uid, req.usuario.uid, 'aprovado');
+    await usuarioRepo.vincularNutricionista(paciente.uid, req.usuario.uid, 'pendente');
     res.status(201).json({
       sucesso: true,
-      dados: { uidPaciente: paciente.uid, nome: paciente.nome },
+      dados: { uidPaciente: paciente.uid, nome: paciente.nome, statusVinculo: 'pendente' },
     });
   } catch (erro) {
     next(erro);

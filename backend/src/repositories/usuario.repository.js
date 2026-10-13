@@ -148,8 +148,8 @@ async function listarSolicitacoesDoNutricionista(uidNutricionista) {
     .filter((p) => p.statusVinculo === 'pendente');
 }
 
-/** Vincula um paciente a um nutricionista (status aprovado ou pendente). */
-async function vincularNutricionista(uidPaciente, uidNutricionista, status = 'aprovado') {
+/** Vincula um paciente a um nutricionista (status pendente por padrao ate aprovacao). */
+async function vincularNutricionista(uidPaciente, uidNutricionista, status = 'pendente') {
   await db()
     .collection(COLECAO)
     .doc(uidPaciente)

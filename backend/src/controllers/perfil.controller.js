@@ -40,8 +40,8 @@ async function escolherNutricionista(req, res, next) {
       throw AppError.notFound('Nutricionista nao encontrado.');
     }
 
-    await usuarioRepo.vincularNutricionista(req.usuario.uid, uidNutricionista);
-    res.json({ sucesso: true, dados: { idNutricionista: uidNutricionista } });
+    await usuarioRepo.vincularNutricionista(req.usuario.uid, uidNutricionista, 'pendente');
+    res.json({ sucesso: true, dados: { idNutricionista: uidNutricionista, statusVinculo: 'pendente' } });
   } catch (erro) {
     next(erro);
   }

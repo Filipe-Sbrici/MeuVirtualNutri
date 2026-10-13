@@ -27,7 +27,7 @@ async function resolverUid(req) {
 
   if (esquema && token && esquema.toLowerCase() === 'bearer') {
     try {
-      const decodificado = await auth().verifyIdToken(token);
+      const decodificado = await auth().verifyIdToken(token, true);
       return decodificado.uid;
     } catch {
       throw AppError.unauthorized('Sessao invalida ou expirada. Entre novamente.');
@@ -90,7 +90,7 @@ async function autenticarToken(req, res, next) {
 
     let decodificado;
     try {
-      decodificado = await auth().verifyIdToken(token);
+      decodificado = await auth().verifyIdToken(token, true);
     } catch {
       throw AppError.unauthorized('Sessao invalida ou expirada. Entre novamente.');
     }

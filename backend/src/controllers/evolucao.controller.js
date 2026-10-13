@@ -23,7 +23,7 @@ async function obterEvolucao(req, res, next) {
         throw AppError.forbidden('Voce so pode consultar sua propria evolucao.');
       }
       const alvo = await usuarioRepo.buscarPorUid(uidAlvo);
-      if (!alvo || alvo.idNutricionista !== req.usuario.uid) {
+      if (!alvo || alvo.idNutricionista !== req.usuario.uid || alvo.statusVinculo !== 'aprovado') {
         throw AppError.forbidden('Paciente nao esta vinculado a voce.');
       }
     }

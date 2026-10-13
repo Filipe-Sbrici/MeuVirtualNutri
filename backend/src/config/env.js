@@ -27,7 +27,10 @@ const config = {
     // Modo demonstracao: quando "true", a API cria um token de teste
     // fixo caso nenhum Bearer token chegue na requisicao. Util apenas
     // para provar os endpoints sem emulador/credenciais.
-    modoDemo: (process.env.FIREBASE_DEMO_MODE || '') === 'true',
+    // Forcado a false em ambiente de producao por seguranca.
+    modoDemo:
+      process.env.NODE_ENV !== 'production' &&
+      (process.env.FIREBASE_DEMO_MODE || '') === 'true',
   },
 };
 

@@ -29,7 +29,14 @@ const config = require('../config/env');
 async function cadastrarPaciente(req, res, next) {
   try {
     const nome = parseText(req.body.nome, 'nome', 100);
-    const email = parseText(req.body.email, 'email', 150).toLowerCase();
+    const emailToken = String(req.usuario?.email || '').trim().toLowerCase();
+    if (!emailToken) {
+      throw AppError.badRequest('O token de autenticacao nao contem um e-mail valido.');
+    }
+    if (req.body.email && String(req.body.email).trim().toLowerCase() !== emailToken) {
+      throw AppError.forbidden('O e-mail informado diverge da identidade autenticada no token.');
+    }
+    const email = emailToken;
 
     const existente = await usuarioRepo.buscarPorEmail(email);
     if (existente) throw AppError.conflict('Este e-mail ja esta cadastrado.');
@@ -54,7 +61,14 @@ async function cadastrarPaciente(req, res, next) {
 async function cadastrarNutricionista(req, res, next) {
   try {
     const nome = parseText(req.body.nome, 'nome', 100);
-    const email = parseText(req.body.email, 'email', 150).toLowerCase();
+    const emailToken = String(req.usuario?.email || '').trim().toLowerCase();
+    if (!emailToken) {
+      throw AppError.badRequest('O token de autenticacao nao contem um e-mail valido.');
+    }
+    if (req.body.email && String(req.body.email).trim().toLowerCase() !== emailToken) {
+      throw AppError.forbidden('O e-mail informado diverge da identidade autenticada no token.');
+    }
+    const email = emailToken;
     const crn = parseText(req.body.crn, 'crn', 20);
     const especializacao = parseOpcional(req.body.especializacao, 100);
 

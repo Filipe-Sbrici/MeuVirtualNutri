@@ -5,23 +5,26 @@
 
 const { Router } = require('express');
 const progressoController = require('../controllers/progresso.controller');
-const { autenticar } = require('../middlewares/auth');
+const { autenticar, exigirPaciente } = require('../middlewares/auth');
 
 const router = Router();
 
+// Todas as rotas de progresso sao exclusivas do paciente.
+router.use(autenticar, exigirPaciente);
+
 // Resumo + historico de pesagens do paciente logado.
-router.get('/', autenticar, progressoController.obterResumo);
+router.get('/', progressoController.obterResumo);
 
 // "+ REGISTRAR PESO"
-router.post('/peso', autenticar, progressoController.registrarPeso);
+router.post('/peso', progressoController.registrarPeso);
 
 // Botao "x" no Historico de Peso (idProgresso = data YYYY-MM-DD).
-router.delete('/peso/:dataRegistro', autenticar, progressoController.removerPesagem);
+router.delete('/peso/:dataRegistro', progressoController.removerPesagem);
 
 // Contador de agua do Bem-Estar.
-router.post('/agua', autenticar, progressoController.registrarAgua);
+router.post('/agua', progressoController.registrarAgua);
 
 // Termometro emocional do Bem-Estar.
-router.post('/humor', autenticar, progressoController.registrarHumor);
+router.post('/humor', progressoController.registrarHumor);
 
 module.exports = router;

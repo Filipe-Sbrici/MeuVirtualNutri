@@ -37,7 +37,7 @@ async function carregarPaciente(uid) {
 /** Garante que o nutricionista e responsavel pelo paciente. */
 async function exigirVinculo(uidNutricionista, uidPaciente) {
   const paciente = await carregarPaciente(uidPaciente);
-  if (paciente.idNutricionista !== uidNutricionista) {
+  if (paciente.idNutricionista !== uidNutricionista || paciente.statusVinculo !== 'aprovado') {
     throw AppError.forbidden('Paciente nao esta vinculado a voce.');
   }
   return paciente;
