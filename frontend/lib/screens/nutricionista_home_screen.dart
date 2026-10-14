@@ -496,7 +496,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
                                 onPressed: () async {
                                   await widget.nutricionistaService
                                       .recusarConsulta(pedido.idConsulta);
-                                  _carregarDadosHome();
+                                  await _carregarDadosHome();
                                 },
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.vermelho,
@@ -510,7 +510,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
                                 onPressed: () async {
                                   await widget.nutricionistaService
                                       .aprovarConsulta(pedido.idConsulta);
-                                  _carregarDadosHome();
+                                  await _carregarDadosHome();
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.verde,
@@ -1621,7 +1621,7 @@ class _PerfilClinicoScreenState extends State<PerfilClinicoScreen> {
 
   Future<void> _abrirListaComprasPaciente() async {
     if (!widget.paciente.compartilharListaCompras) {
-      showDialog(
+      await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Row(
@@ -1647,7 +1647,7 @@ class _PerfilClinicoScreenState extends State<PerfilClinicoScreen> {
     }
 
     // Carregar itens da lista de compras
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

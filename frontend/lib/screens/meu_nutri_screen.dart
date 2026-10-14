@@ -330,11 +330,11 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (orientacao.confirmada)
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.check_circle_rounded,
+                            Icon(Icons.check_circle_rounded,
                                 size: 16, color: AppColors.verde),
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6),
                             Text(
                               'Orientação confirmada',
                               style: TextStyle(

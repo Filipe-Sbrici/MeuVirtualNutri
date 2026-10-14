@@ -15,11 +15,12 @@ flutter run
 
 ### Endereços da API (automáticos)
 
-| Ambiente | URL base |
+| Ambiente | URL base / Forma de configuração |
 |---|---|
-| Emulador Android | `http://10.0.2.2:3000/api` |
-| Web / Desktop | `http://localhost:3000/api` |
-| Dispositivo físico | `--dart-define=API_HOST=<ip-da-maquina>` |
+| Emulador Android | `http://10.0.2.2:3000/api` (automático) |
+| Web / Desktop | `http://localhost:3000/api` (automático) |
+| Dispositivo físico (Build) | `--dart-define=API_HOST=<ip-da-maquina>` ou `--dart-define=API_URL=<url-completa>` |
+| Dispositivo físico (No App) | Botão de Servidor (ícone no topo do Login ou no banner de erro) para configurar e testar sem recompilar |
 
 ## Estrutura
 

@@ -22,6 +22,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'core/api_client.dart';
+import 'core/app_config.dart';
 import 'core/app_settings.dart';
 import 'core/firebase_config.dart';
 import 'core/theme.dart';
@@ -36,6 +37,7 @@ import 'services/mvn_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.inicializar();
   await FirebaseConfig.inicializar();
   runApp(const MvnApp());
 }

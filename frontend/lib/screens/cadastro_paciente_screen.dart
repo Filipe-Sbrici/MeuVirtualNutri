@@ -20,6 +20,7 @@ import '../core/theme.dart';
 import '../models/usuario.dart';
 import '../services/api_services.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/config_servidor_dialog.dart';
 
 class CadastroPacienteScreen extends StatefulWidget {
   const CadastroPacienteScreen({
@@ -54,6 +55,14 @@ class _CadastroPacienteScreenState extends State<CadastroPacienteScreen> {
     _senhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
+  }
+
+  /// Abre o dialogo de configuracao do servidor da API (Node.js).
+  Future<void> _abrirConfigServidor() async {
+    final alterou = await ConfigServidorDialog.mostrar(context);
+    if (alterou == true && mounted) {
+      setState(() => _mensagemErro = null);
+    }
   }
 
   /// Submete o formulario e cadastra o novo paciente na API.
@@ -111,6 +120,15 @@ class _CadastroPacienteScreenState extends State<CadastroPacienteScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.dns_outlined, color: AppColors.textoFraco),
+                      tooltip: 'Configurar Servidor da API',
+                      onPressed: _abrirConfigServidor,
+                    ),
+                  ),
+
                   // --- Logo da aplicacao ---
                   Center(
                     child: Image.asset(
@@ -168,6 +186,7 @@ class _CadastroPacienteScreenState extends State<CadastroPacienteScreen> {
                         ),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(
                             Icons.error_outline,
@@ -176,12 +195,45 @@ class _CadastroPacienteScreenState extends State<CadastroPacienteScreen> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              _mensagemErro!,
-                              style: const TextStyle(
-                                color: AppColors.vermelho,
-                                fontSize: 13,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _mensagemErro!,
+                                  style: const TextStyle(
+                                    color: AppColors.vermelho,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                if (_mensagemErro!.contains('API') ||
+                                    _mensagemErro!.contains('servidor') ||
+                                    _mensagemErro!.contains('conectar')) ...[
+                                  const SizedBox(height: 8),
+                                  InkWell(
+                                    onTap: _abrirConfigServidor,
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.settings_rounded,
+                                          size: 14,
+                                          color: AppColors.verdeEscuro,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Configurar servidor da API',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.verdeEscuro,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],

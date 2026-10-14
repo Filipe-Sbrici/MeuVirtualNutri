@@ -20,6 +20,7 @@ import '../core/theme.dart';
 import '../models/usuario.dart';
 import '../services/api_services.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/config_servidor_dialog.dart';
 import 'cadastro_nutricionista_screen.dart';
 import 'cadastro_paciente_screen.dart';
 
@@ -51,6 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _senhaController.dispose();
     super.dispose();
+  }
+
+  /// Abre o dialogo de configuracao do servidor da API (Node.js).
+  Future<void> _abrirConfigServidor() async {
+    final alterou = await ConfigServidorDialog.mostrar(context);
+    if (alterou == true && mounted) {
+      setState(() => _mensagemErro = null);
+    }
   }
 
   /// Executa o login no Firebase com as credenciais informadas.
@@ -292,6 +301,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.dns_outlined, color: AppColors.textoFraco),
+                      tooltip: 'Configurar Servidor da API',
+                      onPressed: _abrirConfigServidor,
+                    ),
+                  ),
+
                   // --- Logo da aplicacao ---
                   Center(
                     child: Image.asset(
@@ -349,6 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(
                             Icons.error_outline,
@@ -357,12 +376,45 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              _mensagemErro!,
-                              style: const TextStyle(
-                                color: AppColors.vermelho,
-                                fontSize: 13,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _mensagemErro!,
+                                  style: const TextStyle(
+                                    color: AppColors.vermelho,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                if (_mensagemErro!.contains('API') ||
+                                    _mensagemErro!.contains('servidor') ||
+                                    _mensagemErro!.contains('conectar')) ...[
+                                  const SizedBox(height: 8),
+                                  InkWell(
+                                    onTap: _abrirConfigServidor,
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.settings_rounded,
+                                          size: 14,
+                                          color: AppColors.verdeEscuro,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Configurar servidor da API',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.verdeEscuro,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],

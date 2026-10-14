@@ -186,18 +186,21 @@ class ApiClient {
     try {
       resposta = await requisicao().timeout(AppConfig.timeoutRequisicao);
     } on TimeoutException {
-      throw ApiException('A API demorou muito para responder. Tente novamente.');
+      throw ApiException(
+        'A API demorou muito para responder (${AppConfig.baseUrl}).\n'
+        'Verifique se o servidor Node.js está em execução e acessível pelo seu dispositivo, ou configure o endereço da API.',
+      );
     } on http.ClientException catch (erro) {
       // Servidor fora do ar, host errado ou recusa de conexao.
       // Nao usamos SocketException (dart:io) para que este arquivo
       // compile tambem em Flutter Web.
       throw ApiException(
-        'Nao foi possivel conectar a API.\n'
-        'Verifique se o servidor Node.js esta rodando em ${AppConfig.baseUrl}.\n'
+        'Não foi possível conectar à API em ${AppConfig.baseUrl}.\n'
+        'Verifique se o servidor Node.js está em execução e acessível neste endereço.\n'
         '(${erro.message})',
       );
     } catch (erro) {
-      throw ApiException('Falha na comunicacao com a API: $erro');
+      throw ApiException('Falha na comunicação com a API (${AppConfig.baseUrl}): $erro');
     }
 
     Map<String, dynamic> json;

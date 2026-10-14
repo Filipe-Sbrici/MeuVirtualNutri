@@ -25,6 +25,10 @@ jobs:
         working-directory: ./frontend
         run: flutter pub get
 
+      - name: Executar Análise Estática
+        working-directory: ./frontend
+        run: flutter analyze
+
       - name: Executar Testes Automatizados
         working-directory: ./frontend
         run: flutter test --coverage
@@ -82,7 +86,14 @@ jobs:
       # -------------------------------------------------------------
       - name: Compilar Aplicação Web
         working-directory: ./frontend
-        run: flutter build web --release
+        env:
+          API_URL: ${{ secrets.API_URL || vars.API_URL }}
+        run: |
+          BUILD_ARGS=""
+          if [ -n "$API_URL" ]; then
+            BUILD_ARGS="$BUILD_ARGS --dart-define=API_URL=$API_URL"
+          fi
+          flutter build web --release $BUILD_ARGS
 
       - name: Gerar Arquivo ZIP da Aplicação Web
         run: |
@@ -101,7 +112,17 @@ jobs:
       # -------------------------------------------------------------
       - name: Compilar APK Android
         working-directory: ./frontend
-        run: flutter build apk --release
+        env:
+          API_URL: ${{ secrets.API_URL || vars.API_URL }}
+          API_HOST: ${{ secrets.API_HOST || vars.API_HOST }}
+        run: |
+          BUILD_ARGS=""
+          if [ -n "$API_URL" ]; then
+            BUILD_ARGS="$BUILD_ARGS --dart-define=API_URL=$API_URL"
+          elif [ -n "$API_HOST" ]; then
+            BUILD_ARGS="$BUILD_ARGS --dart-define=API_HOST=$API_HOST"
+          fi
+          flutter build apk --release $BUILD_ARGS
 
       - name: Preparar APK Android com Nome Amigável
         run: |
