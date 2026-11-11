@@ -1,10 +1,11 @@
 /// Dialogo para configuracao interativa do endereco do servidor da API (Node.js).
 ///
 /// Permite aos desenvolvedores, testadores e avaliadores do TCC:
-/// 1. Visualizar a URL atualmente ativa da API.
+/// 1. Visualizar a URL atualmente ativa da API ou ativar o Modo Integrado (Celular).
 /// 2. Alterar o IP ou endereco (ex.: IP da rede local Wi-Fi, emulador ou nuvem).
-/// 3. Testar a conexao em tempo real antes de salvar (ping no /api/health).
-/// 4. Persistir a escolha no dispositivo para sessoes futuras.
+/// 3. Buscar automaticamente o servidor Node.js na rede Wi-Fi local.
+/// 4. Testar a conexao em tempo real antes de salvar.
+/// 5. Persistir a escolha no dispositivo para sessoes futuras.
 library;
 
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ class ConfigServidorDialog extends StatefulWidget {
 class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
   late final TextEditingController _urlController;
   bool _testando = false;
+  bool _buscandoRede = false;
   ResultadoConexao? _resultadoTeste;
   bool _salvando = false;
 
@@ -63,6 +65,40 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
     });
   }
 
+  Future<void> _buscarNaRede() async {
+    setState(() {
+      _buscandoRede = true;
+      _resultadoTeste = null;
+    });
+
+    final encontrado = await AppConfig.descobrirServidorNaRede();
+    if (!mounted) return;
+
+    if (encontrado != null) {
+      setState(() {
+        _buscandoRede = false;
+        _urlController.text = encontrado;
+        _resultadoTeste = ResultadoConexao(
+          sucesso: true,
+          mensagem: 'Servidor Node.js encontrado automaticamente em $encontrado!',
+          tempoMs: 0,
+        );
+      });
+    } else {
+      AppConfig.ativarModoIntegrado(true);
+      setState(() {
+        _buscandoRede = false;
+        _urlController.text = 'integrado';
+        _resultadoTeste = const ResultadoConexao(
+          sucesso: true,
+          mensagem:
+              'Nenhum servidor Node.js externo encontrado no Wi-Fi. Modo Integrado do Celular ativado automaticamente!',
+          tempoMs: 0,
+        );
+      });
+    }
+  }
+
   Future<void> _salvar() async {
     final entrada = _urlController.text.trim();
     if (entrada.isEmpty) return;
@@ -84,7 +120,8 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
 
   void _aplicarPredefinicao(String valor) {
     setState(() {
-      _urlController.text = AppConfig.normalizarUrl(valor);
+      _urlController.text =
+          valor == 'integrado' ? 'integrado' : AppConfig.normalizarUrl(valor);
       _resultadoTeste = null;
     });
   }
@@ -116,7 +153,7 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Configure o endereço onde a API Node.js está em execução para comunicação pelo app.',
+              'No celular, o aplicativo funciona automaticamente com o Modo Integrado + Firebase Auth, ou pode se conectar a um servidor Node.js na mesma rede Wi-Fi.',
               style: TextStyle(fontSize: 13, color: AppColors.textoFraco),
             ),
             const SizedBox(height: 16),
@@ -127,8 +164,8 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
               keyboardType: TextInputType.url,
               autocorrect: false,
               decoration: InputDecoration(
-                labelText: 'URL ou IP da API',
-                hintText: 'ex: http://192.168.0.22:3000/api',
+                labelText: 'Modo ou URL da API',
+                hintText: 'integrado ou http://192.168.0.22:3000/api',
                 prefixIcon: const Icon(Icons.link_rounded, size: 20),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear_rounded, size: 18),
@@ -158,6 +195,19 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
               runSpacing: 6,
               children: [
                 ActionChip(
+                  label: const Text(
+                    'Modo Celular (Integrado)',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  avatar: const Icon(Icons.smartphone_rounded, size: 14),
+                  onPressed: () => _aplicarPredefinicao('integrado'),
+                ),
+                ActionChip(
+                  label: const Text('192.168.15.165 (PC Wi-Fi)', style: TextStyle(fontSize: 11)),
+                  avatar: const Icon(Icons.wifi_rounded, size: 14),
+                  onPressed: () => _aplicarPredefinicao('192.168.15.165'),
+                ),
+                ActionChip(
                   label: const Text('192.168.0.22', style: TextStyle(fontSize: 11)),
                   avatar: const Icon(Icons.wifi_rounded, size: 14),
                   onPressed: () => _aplicarPredefinicao('192.168.0.22'),
@@ -177,9 +227,38 @@ class _ConfigServidorDialogState extends State<ConfigServidorDialog> {
 
             const SizedBox(height: 14),
 
+            // Botao de Buscar na Rede Wi-Fi
+            OutlinedButton.icon(
+              onPressed: (_testando || _buscandoRede) ? null : _buscarNaRede,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.paletaRoxo,
+                side: const BorderSide(color: AppColors.paletaRoxo),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: _buscandoRede
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.paletaRoxo,
+                      ),
+                    )
+                  : const Icon(Icons.wifi_find_rounded, size: 18),
+              label: Text(
+                _buscandoRede
+                    ? 'Procurando servidor no Wi-Fi...'
+                    : 'Detectar Servidor na Rede Wi-Fi',
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
             // Botao de Testar Conexao
             OutlinedButton.icon(
-              onPressed: _testando ? null : _executarTeste,
+              onPressed: (_testando || _buscandoRede) ? null : _executarTeste,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.verdeEscuro,
                 side: const BorderSide(color: AppColors.verde),

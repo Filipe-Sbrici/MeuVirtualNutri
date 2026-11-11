@@ -29,7 +29,13 @@ class AuthService {
       email: email.trim(),
       password: senha,
     );
-    return carregarPerfil(credencial.user!.uid);
+    await credencial.user?.reload();
+    final verificado = _auth.currentUser?.emailVerified ?? false;
+    if (verificado) {
+      await _auth.currentUser?.getIdToken(true);
+    }
+    final perfil = await carregarPerfil(credencial.user!.uid);
+    return perfil.copiarCom(<String, dynamic>{'emailVerificado': verificado});
   }
 
   /// Cria a conta no Firebase e materializa o perfil paciente na API.
@@ -56,7 +62,11 @@ class AuthService {
         'nome': nome,
         'email': email.trim(),
       });
-      return await carregarPerfil();
+      await credencial.user!.sendEmailVerification();
+      final perfil = await carregarPerfil();
+      return perfil.copiarCom(<String, dynamic>{
+        'emailVerificado': credencial.user?.emailVerified ?? false,
+      });
     } catch (_) {
       await credencial.user?.delete().catchError((_) {});
       rethrow;
@@ -91,12 +101,38 @@ class AuthService {
         if (especializacao != null && especializacao.isNotEmpty)
           'especializacao': especializacao,
       });
+      await credencial.user!.sendEmailVerification();
       final perfil = lerDados(resposta, Usuario.fromJson);
-      return perfil;
+      return perfil.copiarCom(<String, dynamic>{
+        'emailVerificado': credencial.user?.emailVerified ?? false,
+      });
     } catch (_) {
       await credencial.user?.delete().catchError((_) {});
       rethrow;
     }
+  }
+
+  /// Reenvia o link de confirmacao de e-mail do Firebase Authentication.
+  Future<void> reenviarEmailVerificacao() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw ApiException('Sessao expirada. Faca login novamente.');
+    }
+    await user.sendEmailVerification();
+  }
+
+  /// Recarrega o usuario no Firebase Auth, atualiza o ID token se verificado
+  /// e informa se o e-mail ja foi confirmado.
+  Future<bool> verificarStatusEmail() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    await user.reload();
+    final atualizado = _auth.currentUser;
+    final verificado = atualizado?.emailVerified ?? false;
+    if (verificado) {
+      await atualizado?.getIdToken(true);
+    }
+    return verificado;
   }
 
   /// Perfil do usuario autenticado (GET /api/auth/perfil).

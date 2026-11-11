@@ -35,6 +35,7 @@ import 'package:mvn_app/core/theme.dart';
 import 'package:mvn_app/models/cardapio.dart';
 import 'package:mvn_app/models/usuario.dart';
 import 'package:mvn_app/screens/aparencia_acessibilidade_screen.dart';
+import 'package:mvn_app/screens/assinatura_nutricionista_screen.dart';
 import 'package:mvn_app/screens/chat_screen.dart';
 import 'package:mvn_app/screens/configuracoes_screen.dart';
 import 'package:mvn_app/screens/dados_perfil_screen.dart';
@@ -42,6 +43,7 @@ import 'package:mvn_app/screens/login_screen.dart';
 import 'package:mvn_app/screens/nutricionista_home_screen.dart';
 import 'package:mvn_app/screens/paciente_home_screen.dart';
 import 'package:mvn_app/screens/progresso_screen.dart';
+import 'package:mvn_app/screens/verificacao_email_screen.dart';
 import 'package:mvn_app/services/api_services.dart';
 import 'package:mvn_app/services/chat_service.dart';
 import 'package:mvn_app/services/mvn_services.dart';
@@ -85,6 +87,9 @@ const kPacienteUsuario = Usuario(
 class MockAuthServiceParaTeste extends AuthService {
   MockAuthServiceParaTeste(super.api);
 
+  bool emailConfirmadoSimulado = false;
+  int totalReenviosEmail = 0;
+
   @override
   Future<Usuario> login({required String email, required String senha}) async {
     if (email == 'nteste@gmail.com' && senha == '123456') {
@@ -93,6 +98,16 @@ class MockAuthServiceParaTeste extends AuthService {
       return kPacienteUsuario;
     }
     throw ApiException('E-mail ou senha incorretos.');
+  }
+
+  @override
+  Future<void> reenviarEmailVerificacao() async {
+    totalReenviosEmail++;
+  }
+
+  @override
+  Future<bool> verificarStatusEmail() async {
+    return emailConfirmadoSimulado;
   }
 
   @override
@@ -763,6 +778,192 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(orientacaoEnviada, isTrue);
+    });
+
+    testWidgets(
+        '13. Assinatura Mercado Pago (R\$ 29,90/mês) e limite de 15 pacientes nas Configurações do Nutricionista',
+        (tester) async {
+      bool assinouNoMercadoPago = false;
+      bool sincronizouAssinatura = false;
+
+      final api = ApiClient(
+        cliente: MockClient((req) async {
+          if (req.method == 'GET' &&
+              req.url.path.contains('/assinatura/status')) {
+            return http.Response(
+              jsonEncode({
+                'sucesso': true,
+                'dados': {
+                  'assinatura': {
+                    'planoAssinatura': assinouNoMercadoPago ? 'pro' : 'gratuito',
+                    'statusAssinatura': assinouNoMercadoPago ? 'ativa' : 'inativa',
+                    'ehAssinante': assinouNoMercadoPago,
+                    'precoMensal': 29.90,
+                    'limitePacientes': assinouNoMercadoPago ? null : 15,
+                    'limitePlanoGratuito': 15,
+                    'totalPacientesAtivos': 15,
+                    'restantesGratuito': 0,
+                    'limiteAtingido': !assinouNoMercadoPago,
+                    'metodoPagamento': 'pix',
+                  }
+                }
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          if (req.method == 'POST' &&
+              req.url.path.contains('/assinatura/assinar')) {
+            assinouNoMercadoPago = true;
+            return http.Response(
+              jsonEncode({
+                'sucesso': true,
+                'dados': {
+                  'assinatura': {
+                    'planoAssinatura': 'gratuito',
+                    'statusAssinatura': 'pendente',
+                    'ehAssinante': false,
+                    'precoMensal': 29.90,
+                    'limitePacientes': 15,
+                    'limitePlanoGratuito': 15,
+                    'totalPacientesAtivos': 15,
+                    'idAssinaturaMp': 'mp_sim_12345',
+                    'checkoutUrl':
+                        'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=mp_sim_12345',
+                    'metodoPagamento': 'pix',
+                  }
+                }
+              }),
+              201,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          if (req.method == 'POST' &&
+              req.url.path.contains('/assinatura/sincronizar')) {
+            sincronizouAssinatura = true;
+            return http.Response(
+              jsonEncode({
+                'sucesso': true,
+                'dados': {
+                  'assinatura': {
+                    'planoAssinatura': 'pro',
+                    'statusAssinatura': 'ativa',
+                    'ehAssinante': true,
+                    'precoMensal': 29.90,
+                    'limitePacientes': null,
+                    'limitePlanoGratuito': 15,
+                    'totalPacientesAtivos': 15,
+                    'idAssinaturaMp': 'mp_sim_12345',
+                    'metodoPagamento': 'pix',
+                  },
+                  'perfil': {
+                    'uid': kNutriUsuario.uid,
+                    'nome': kNutriUsuario.nome,
+                    'email': kNutriUsuario.email,
+                    'tipoUsuario': 'nutricionista',
+                    'planoAssinatura': 'pro',
+                    'statusAssinatura': 'ativa',
+                    'ehAssinante': true,
+                    'limitePacientes': null,
+                    'precoAssinatura': 29.90,
+                  }
+                }
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          return http.Response('{"sucesso":true,"dados":{}}', 200);
+        }),
+      );
+
+      Usuario usuarioSessao = kNutriUsuario;
+
+      await tester.pumpWidget(_envolverWidget(ConfiguracoesScreen(
+        usuario: usuarioSessao,
+        authService: AuthService(api),
+        onboardingService: OnboardingService(api),
+        aoAtualizarUsuario: (u) => usuarioSessao = u,
+        aoFazerLogout: () {},
+      )));
+      await tester.pumpAndSettle();
+
+      // Verifica se o item Plano e Assinatura aparece nas Configurações do Nutricionista
+      expect(find.text('Plano e Assinatura'), findsOneWidget);
+      expect(find.textContaining('15 pacientes'), findsWidgets);
+
+      // Abre a tela de Assinatura
+      await tester.tap(find.text('Plano e Assinatura'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AssinaturaNutricionistaScreen), findsOneWidget);
+      expect(find.text('15 / 15 pacientes'), findsOneWidget);
+      expect(find.text('R\$ 29,90'), findsOneWidget);
+
+      // Clica para assinar o Plano Pro por R$ 29,90/mês
+      await _rolarAte(tester, find.text('Assinar Plano Pro • R\$ 29,90/mês'));
+      await tester.tap(find.text('Assinar Plano Pro • R\$ 29,90/mês'));
+      await tester.pumpAndSettle();
+
+      // Confirma o pagamento no modal do Mercado Pago
+      expect(find.text('Confirmar Pagamento (R\$ 29,90)'), findsOneWidget);
+      await tester.tap(find.text('Confirmar Pagamento (R\$ 29,90)'));
+      await tester.pumpAndSettle();
+
+      expect(assinouNoMercadoPago, isTrue);
+      expect(sincronizouAssinatura, isTrue);
+      expect(usuarioSessao.ehAssinante, isTrue);
+      expect(usuarioSessao.limitePacientes, isNull);
+      expect(find.text('Plano Pro Ativo'), findsOneWidget);
+    });
+
+    testWidgets(
+        '14. Verificação de e-mail para segurança da conta (reenvio e confirmação)',
+        (tester) async {
+      final api =
+          ApiClient(cliente: MockClient((_) async => http.Response('{}', 200)));
+      final authService = MockAuthServiceParaTeste(api);
+      bool verificacaoLiberada = false;
+
+      final usuarioPendente = kPacienteUsuario.copiarCom(
+        const <String, dynamic>{'emailVerificado': false},
+      );
+
+      await tester.pumpWidget(_envolverWidget(VerificacaoEmailScreen(
+        usuario: usuarioPendente,
+        authService: authService,
+        aoConfirmarVerificacao: () => verificacaoLiberada = true,
+        aoFazerLogout: () async {},
+      )));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Verifique seu e-mail'), findsOneWidget);
+      expect(find.text('pteste@gmail.com'), findsOneWidget);
+
+      // Tenta confirmar antes de clicar no link do e-mail -> mostra aviso
+      await tester.tap(find.text('Ja confirmei meu e-mail'));
+      await tester.pumpAndSettle();
+      expect(verificacaoLiberada, isFalse);
+      expect(
+        find.textContaining('Ainda nao identificamos a confirmacao'),
+        findsOneWidget,
+      );
+
+      // Reenvia o link de verificação
+      await tester.tap(find.text('Reenviar link de verificacao'));
+      await tester.pumpAndSettle();
+      expect(authService.totalReenviosEmail, 1);
+      expect(
+        find.textContaining('Novo link de verificacao enviado'),
+        findsOneWidget,
+      );
+
+      // Simula que o usuário clicou no link recebido por e-mail
+      authService.emailConfirmadoSimulado = true;
+      await tester.tap(find.text('Ja confirmei meu e-mail'));
+      await tester.pumpAndSettle();
+
+      expect(verificacaoLiberada, isTrue);
     });
   });
 }

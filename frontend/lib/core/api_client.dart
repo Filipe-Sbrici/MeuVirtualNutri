@@ -4,6 +4,10 @@
 /// token do Firebase Authentication em cada requisicao e o tratamento
 /// de erros, para que os servicos e as telas nunca lidem com `http`
 /// direto.
+///
+/// Em dispositivos fisicos (APK Android) onde o servidor Node.js externo
+/// nao estiver acessivel na rede, realiza fallback automatico e transparente
+/// para o [LocalApiEngine].
 library;
 
 import 'dart:async';
@@ -14,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'app_config.dart';
+import 'local_api_engine.dart';
 
 /// Erro de API com mensagem pronta para exibicao ao usuario.
 class ApiException implements Exception {
@@ -80,9 +85,11 @@ typedef ProvedorToken = Future<String?> Function();
 
 class ApiClient {
   ApiClient({http.Client? cliente, ProvedorToken? provedorToken})
-      : _cliente = cliente ?? http.Client(),
+      : _usaClientePadrao = cliente == null,
+        _cliente = cliente ?? http.Client(),
         _provedorToken = provedorToken ?? _tokenPadrao;
 
+  final bool _usaClientePadrao;
   final http.Client _cliente;
   final ProvedorToken _provedorToken;
 
@@ -105,9 +112,21 @@ class ApiClient {
     String caminho, {
     Map<String, dynamic>? query,
   }) async {
+    if (_usaClientePadrao && AppConfig.modoServidorIntegrado) {
+      return LocalApiEngine.instance.processar(
+        'GET',
+        caminho,
+        query: query,
+      );
+    }
     final uri = _montarUri(caminho, query);
     final headers = await _headers();
-    return _executar(() => _cliente.get(uri, headers: headers));
+    return _executar(
+      () => _cliente.get(uri, headers: headers),
+      metodo: 'GET',
+      caminho: caminho,
+      query: query,
+    );
   }
 
   /// POST com corpo JSON.
@@ -115,14 +134,24 @@ class ApiClient {
     String caminho, {
     Map<String, dynamic>? corpo,
   }) async {
+    if (_usaClientePadrao && AppConfig.modoServidorIntegrado) {
+      return LocalApiEngine.instance.processar(
+        'POST',
+        caminho,
+        corpo: corpo,
+      );
+    }
     final uri = _montarUri(caminho, null);
     final headers = await _headers();
     return _executar(
       () => _cliente.post(
         uri,
         headers: headers,
-        body: jsonEncode(corpo ?? const {}),
+        body: jsonEncode(corpo ?? const <String, dynamic>{}),
       ),
+      metodo: 'POST',
+      caminho: caminho,
+      corpo: corpo,
     );
   }
 
@@ -131,14 +160,24 @@ class ApiClient {
     String caminho, {
     Map<String, dynamic>? corpo,
   }) async {
+    if (_usaClientePadrao && AppConfig.modoServidorIntegrado) {
+      return LocalApiEngine.instance.processar(
+        'PUT',
+        caminho,
+        corpo: corpo,
+      );
+    }
     final uri = _montarUri(caminho, null);
     final headers = await _headers();
     return _executar(
       () => _cliente.put(
         uri,
         headers: headers,
-        body: jsonEncode(corpo ?? const {}),
+        body: jsonEncode(corpo ?? const <String, dynamic>{}),
       ),
+      metodo: 'PUT',
+      caminho: caminho,
+      corpo: corpo,
     );
   }
 
@@ -147,14 +186,26 @@ class ApiClient {
     String caminho, {
     Map<String, dynamic>? query,
   }) async {
+    if (_usaClientePadrao && AppConfig.modoServidorIntegrado) {
+      return LocalApiEngine.instance.processar(
+        'DELETE',
+        caminho,
+        query: query,
+      );
+    }
     final uri = _montarUri(caminho, query);
     final headers = await _headers();
-    return _executar(() => _cliente.delete(uri, headers: headers));
+    return _executar(
+      () => _cliente.delete(uri, headers: headers),
+      metodo: 'DELETE',
+      caminho: caminho,
+      query: query,
+    );
   }
 
   Future<Map<String, String>> _headers() async {
     final token = await _provedorToken();
-    return {
+    return <String, String>{
       'Content-Type': 'application/json; charset=utf-8',
       'Accept': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -174,39 +225,66 @@ class ApiClient {
   }
 
   /// Executa a requisicao e normaliza o envelope JSON da API.
-  ///
-  /// A API responde sempre no formato:
-  ///   sucesso: { "sucesso": true,  "dados": {...} }
-  ///   erro:    { "sucesso": false, "erro": { "mensagem": "..." } }
   Future<Map<String, dynamic>> _executar(
-    Future<http.Response> Function() requisicao,
-  ) async {
+    Future<http.Response> Function() requisicao, {
+    required String metodo,
+    required String caminho,
+    Map<String, dynamic>? query,
+    Map<String, dynamic>? corpo,
+  }) async {
     late final http.Response resposta;
 
     try {
       resposta = await requisicao().timeout(AppConfig.timeoutRequisicao);
     } on TimeoutException {
+      if (_usaClientePadrao) {
+        AppConfig.ativarModoIntegrado(true);
+        return LocalApiEngine.instance.processar(
+          metodo,
+          caminho,
+          query: query,
+          corpo: corpo,
+        );
+      }
       throw ApiException(
         'A API demorou muito para responder (${AppConfig.baseUrl}).\n'
         'Verifique se o servidor Node.js está em execução e acessível pelo seu dispositivo, ou configure o endereço da API.',
       );
     } on http.ClientException catch (erro) {
-      // Servidor fora do ar, host errado ou recusa de conexao.
-      // Nao usamos SocketException (dart:io) para que este arquivo
-      // compile tambem em Flutter Web.
+      if (_usaClientePadrao) {
+        AppConfig.ativarModoIntegrado(true);
+        return LocalApiEngine.instance.processar(
+          metodo,
+          caminho,
+          query: query,
+          corpo: corpo,
+        );
+      }
       throw ApiException(
         'Não foi possível conectar à API em ${AppConfig.baseUrl}.\n'
         'Verifique se o servidor Node.js está em execução e acessível neste endereço.\n'
         '(${erro.message})',
       );
     } catch (erro) {
-      throw ApiException('Falha na comunicação com a API (${AppConfig.baseUrl}): $erro');
+      if (_usaClientePadrao) {
+        AppConfig.ativarModoIntegrado(true);
+        return LocalApiEngine.instance.processar(
+          metodo,
+          caminho,
+          query: query,
+          corpo: corpo,
+        );
+      }
+      throw ApiException(
+        'Falha na comunicação com a API (${AppConfig.baseUrl}): $erro',
+      );
     }
 
-    Map<String, dynamic> json;
+    final Map<String, dynamic> json;
     try {
       // utf8.decode preserva acentos vindos do Firestore.
-      json = jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
+      json =
+          jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
     } catch (_) {
       throw ApiException(
         'Resposta invalida da API (HTTP ${resposta.statusCode}).',
@@ -223,9 +301,6 @@ class ApiClient {
       throw ApiException(mensagem, status: resposta.statusCode);
     }
 
-    // Algumas rotas devolvem campos extras ao lado de `dados`
-    // (ex.: `registro` no POST de peso). Preservamos a resposta inteira
-    // e expomos `dados` de forma conveniente.
     return json;
   }
 }

@@ -16,6 +16,13 @@ const COLECAO = 'usuarios';
 
 /** Converte o documento Firestore no formato de perfil usado pela API. */
 function paraPerfil(uid, dados) {
+  const planoAssinatura = dados.planoAssinatura || 'gratuito';
+  const statusAssinatura = dados.statusAssinatura || 'inativa';
+  const ehAssinante = planoAssinatura === 'pro' && statusAssinatura === 'ativa';
+  const assinaturaValidaAte =
+    dados.assinaturaValidaAte?.toDate?.()?.toISOString?.() ??
+    (typeof dados.assinaturaValidaAte === 'string' ? dados.assinaturaValidaAte : null);
+
   return {
     uid,
     nome: dados.nome || '',
@@ -27,6 +34,16 @@ function paraPerfil(uid, dados) {
     // Campos de nutricionista
     crn: dados.crn ?? null,
     especializacao: dados.especializacao ?? null,
+    // Assinatura do nutricionista (Mercado Pago + Firestore)
+    planoAssinatura,
+    statusAssinatura,
+    ehAssinante,
+    limitePacientes: ehAssinante ? null : (dados.limitePacientes ?? 15),
+    precoAssinatura: dados.precoAssinatura ?? 29.9,
+    assinaturaValidaAte,
+    idAssinaturaMp: dados.idAssinaturaMp ?? null,
+    checkoutUrlAssinatura: dados.checkoutUrlAssinatura ?? null,
+    metodoPagamentoAssinatura: dados.metodoPagamentoAssinatura ?? null,
     // Campos clinicos do paciente
     idade: dados.idade ?? null,
     pesoAtual: dados.pesoAtual ?? null,
@@ -87,6 +104,7 @@ async function criarSeNaoExistir(uid, dados) {
   const doc = await ref.get();
   if (doc.exists) return paraPerfil(doc.id, doc.data());
 
+  const ehNutri = dados.tipoUsuario === 'nutricionista';
   await ref.set({
     nome: dados.nome || '',
     email: dados.email ? dados.email.toLowerCase() : '',
@@ -94,7 +112,15 @@ async function criarSeNaoExistir(uid, dados) {
     telefone: dados.telefone ?? null,
     crn: dados.crn ?? null,
     especializacao: dados.especializacao ?? null,
-    onboardingCompleto: dados.tipoUsuario === 'nutricionista',
+    ...(ehNutri
+      ? {
+          planoAssinatura: 'gratuito',
+          statusAssinatura: 'inativa',
+          limitePacientes: 15,
+          precoAssinatura: 29.9,
+        }
+      : {}),
+    onboardingCompleto: ehNutri,
     tutorialVisto: false,
     criadoEm: new Date(),
   });

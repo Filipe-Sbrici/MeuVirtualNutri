@@ -7,17 +7,35 @@
  */
 'use strict';
 
+const os = require('os');
 const app = require('./app');
 const config = require('./config/env');
 const firebase = require('./config/firebase');
 
+function obterIpsRedeLocal() {
+  const interfaces = os.networkInterfaces();
+  const ips = [];
+  for (const lista of Object.values(interfaces)) {
+    for (const info of lista || []) {
+      if (info.family === 'IPv4' && !info.internal) {
+        ips.push(info.address);
+      }
+    }
+  }
+  return ips;
+}
+
 const servidor = app.listen(config.port, '0.0.0.0', async () => {
   /* eslint-disable no-console */
+  const ipsRede = obterIpsRedeLocal();
   console.log('-------------------------------------------------------');
   console.log('  Meu Virtual Nutri - API REST (Firebase/Firestore)');
   console.log(`  Porta ....... ${config.port}`);
   console.log(`  Projeto ..... ${config.firebase.projectId || '(padrao do SDK)'}`);
-  console.log(`  Rotas ....... http://localhost:${config.port}/api`);
+  console.log(`  Local ....... http://localhost:${config.port}/api`);
+  for (const ip of ipsRede) {
+    console.log(`  Rede Wi-Fi .. http://${ip}:${config.port}/api`);
+  }
   console.log('-------------------------------------------------------');
 
   try {

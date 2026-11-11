@@ -5,6 +5,7 @@
 'use strict';
 
 const cardapioService = require('../services/cardapio.service');
+const assinaturaService = require('../services/assinatura.service');
 const usuarioRepo = require('../repositories/usuario.repository');
 const AppError = require('../utils/AppError');
 
@@ -165,6 +166,9 @@ async function vincularPaciente(req, res, next) {
       throw AppError.conflict('Paciente ja vinculado a outro nutricionista.');
     }
 
+    // Verifica limite de 15 pacientes caso o nutricionista nao seja assinante Pro
+    await assinaturaService.verificarLimitePacientes(req.usuario.uid, paciente.uid);
+
     await usuarioRepo.vincularNutricionista(paciente.uid, req.usuario.uid, 'pendente');
     res.status(201).json({
       sucesso: true,
@@ -194,6 +198,10 @@ async function aceitarSolicitacao(req, res, next) {
     if (!paciente || paciente.tipoUsuario !== 'paciente') {
       throw AppError.notFound('Paciente nao encontrado.');
     }
+
+    // Verifica limite de 15 pacientes caso o nutricionista nao seja assinante Pro
+    await assinaturaService.verificarLimitePacientes(req.usuario.uid, uidPaciente);
+
     await usuarioRepo.aceitarSolicitacao(uidPaciente, req.usuario.uid);
     res.json({
       sucesso: true,

@@ -132,11 +132,21 @@ function perfilParaJson(perfil) {
     crn: perfil.crn ?? null,
     nome: perfil.nome,
     email: perfil.email,
+    emailVerificado: perfil.emailVerificado !== false,
     telefone: perfil.telefone,
     tipoUsuario: perfil.tipoUsuario,
     onboardingCompleto: perfil.onboardingCompleto,
     tutorialVisto: perfil.tutorialVisto,
     especializacao: perfil.especializacao ?? null,
+    // Dados de assinatura do nutricionista
+    planoAssinatura: perfil.planoAssinatura ?? 'gratuito',
+    statusAssinatura: perfil.statusAssinatura ?? 'inativa',
+    ehAssinante: Boolean(perfil.ehAssinante),
+    limitePacientes: perfil.ehAssinante ? null : (perfil.limitePacientes ?? 15),
+    precoAssinatura: perfil.precoAssinatura ?? 29.9,
+    assinaturaValidaAte: perfil.assinaturaValidaAte ?? null,
+    idAssinaturaMp: perfil.idAssinaturaMp ?? null,
+    metodoPagamentoAssinatura: perfil.metodoPagamentoAssinatura ?? null,
     // Dados clinicos: alimentam a tela de Perfil (4.5.19, com IMC e
     // restricoes) e o preenchimento do onboarding retomado.
     idade: perfil.idade ?? null,
@@ -159,4 +169,10 @@ function parseOpcional(valor, maxLength) {
   return parseText(valor, 'valor', maxLength);
 }
 
-module.exports = { cadastrarPaciente, cadastrarNutricionista, obterPerfil, loginDemo };
+module.exports = {
+  cadastrarPaciente,
+  cadastrarNutricionista,
+  obterPerfil,
+  loginDemo,
+  perfilParaJson,
+};

@@ -20,21 +20,27 @@ const { auth, db } = require('../config/firebase');
 const config = require('../config/env');
 const AppError = require('../utils/AppError');
 
-/** Extrai o UID a partir do cabecalho Authorization. */
-async function resolverUid(req) {
+/** Extrai o UID e status de verificacao de e-mail a partir do cabecalho Authorization. */
+async function resolverToken(req) {
   const cabecalho = req.headers.authorization || '';
   const [esquema, token] = cabecalho.split(' ');
 
   if (esquema && token && esquema.toLowerCase() === 'bearer') {
     try {
       const decodificado = await auth().verifyIdToken(token, true);
-      return decodificado.uid;
+      return {
+        uid: decodificado.uid,
+        emailVerificado: Boolean(decodificado.email_verified),
+      };
     } catch {
       throw AppError.unauthorized('Sessao invalida ou expirada. Entre novamente.');
     }
   }
 
-  if (config.firebase.modoDemo) return resolverUidDemo(req);
+  if (config.firebase.modoDemo) {
+    const uidDemo = await resolverUidDemo(req);
+    return uidDemo ? { uid: uidDemo, emailVerificado: true } : null;
+  }
 
   return null;
 }
@@ -53,10 +59,24 @@ async function resolverUidDemo(req) {
 /** Carrega o perfil e anexa em req.usuario. */
 async function autenticar(req, res, next) {
   try {
-    const uid = await resolverUid(req);
-    if (!uid) {
+    const sessao = await resolverToken(req);
+    if (!sessao?.uid) {
       throw AppError.unauthorized(
         'Autenticacao necessaria: envie o token Firebase em "Authorization: Bearer <token>".',
+      );
+    }
+
+    const { uid, emailVerificado } = sessao;
+    const rotaPerfil = (req.originalUrl || '').startsWith('/api/auth/perfil');
+
+    if (
+      config.firebase.exigirEmailVerificado &&
+      !config.firebase.modoDemo &&
+      !emailVerificado &&
+      !rotaPerfil
+    ) {
+      throw AppError.forbidden(
+        'E-mail ainda nao verificado. Confirme o link enviado para sua caixa de entrada.',
       );
     }
 
@@ -65,7 +85,7 @@ async function autenticar(req, res, next) {
       throw AppError.unauthorized('Usuario autenticado sem perfil na aplicacao.');
     }
 
-    req.usuario = { uid, ...doc.data() };
+    req.usuario = { uid, ...doc.data(), emailVerificado };
     next();
   } catch (erro) {
     next(erro instanceof AppError ? erro : AppError.unauthorized('Nao autenticado.'));

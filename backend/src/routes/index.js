@@ -14,6 +14,7 @@ const progressoRoutes = require('./progresso.routes');
 const evolucaoRoutes = require('./evolucao.routes');
 const cardapioRoutes = require('./cardapio.routes');
 const nutricionistaRoutes = require('./nutricionista.routes');
+const assinaturaRoutes = require('./assinatura.routes');
 const agendaRoutes = require('./agenda.routes');
 
 const router = Router();
@@ -73,6 +74,12 @@ router.get('/', (req, res) => {
       alimentos: 'GET /api/nutricionista/alimentos',
       relatorios: 'GET /api/nutricionista/relatorios',
       orientacoes: 'POST /api/nutricionista/orientacoes',
+      // Assinatura (Mercado Pago)
+      assinaturaStatus: 'GET /api/assinatura/status',
+      assinaturaAssinar: 'POST /api/assinatura/assinar',
+      assinaturaSincronizar: 'POST /api/assinatura/sincronizar',
+      assinaturaCancelar: 'POST /api/assinatura/cancelar',
+      assinaturaWebhook: 'POST /api/assinatura/webhook',
       // Agenda / paciente
       consultas: 'GET|POST /api/consultas',
       consultaConfirmar: 'POST /api/consultas/:id/confirmar|concluir|cancelar',
@@ -91,6 +98,7 @@ router.use('/progresso', progressoRoutes);
 router.use('/evolucao', evolucaoRoutes);
 router.use('/cardapio', cardapioRoutes);
 router.use('/nutricionista', nutricionistaRoutes);
+router.use('/assinatura', assinaturaRoutes);
 router.use('/', agendaRoutes);
 
 module.exports = router;

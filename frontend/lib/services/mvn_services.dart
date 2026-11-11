@@ -518,4 +518,59 @@ class NutricionistaService {
   Future<void> cancelarConsulta(String idConsulta) async {
     await _api.post('/consultas/$idConsulta/cancelar');
   }
+
+  // ===================================================================
+  //  Assinatura do Nutricionista (Mercado Pago + Limite de 15 Pacientes)
+  // ===================================================================
+
+  /// Consulta o status atual da assinatura e a contagem de pacientes ativos.
+  Future<StatusAssinaturaNutricionista> obterStatusAssinatura() async {
+    final resposta = await _api.get('/assinatura/status');
+    final dados = lerDados(resposta, (d) => d);
+    final raw = (dados['assinatura'] as Map<String, dynamic>?) ?? dados;
+    return StatusAssinaturaNutricionista.fromJson(raw);
+  }
+
+  /// Inicia ou ativa a assinatura de R$ 29,90/mes via Mercado Pago.
+  Future<(StatusAssinaturaNutricionista, Usuario?)> assinarPlanoPro({
+    String metodoPagamento = 'pix',
+    bool confirmarImediatamente = false,
+  }) async {
+    final resposta = await _api.post('/assinatura/assinar', corpo: {
+      'metodoPagamento': metodoPagamento,
+      'confirmarImediatamente': confirmarImediatamente,
+    });
+    final dados = lerDados(resposta, (d) => d);
+    final assinatura = StatusAssinaturaNutricionista.fromJson(
+      (dados['assinatura'] as Map<String, dynamic>?) ?? dados,
+    );
+    final perfilMap = dados['perfil'] as Map<String, dynamic>?;
+    final perfil = perfilMap != null ? Usuario.fromJson(perfilMap) : null;
+    return (assinatura, perfil);
+  }
+
+  /// Sincroniza/confirma o pagamento da assinatura no Mercado Pago.
+  Future<(StatusAssinaturaNutricionista, Usuario?)>
+      sincronizarAssinatura() async {
+    final resposta = await _api.post('/assinatura/sincronizar');
+    final dados = lerDados(resposta, (d) => d);
+    final assinatura = StatusAssinaturaNutricionista.fromJson(
+      (dados['assinatura'] as Map<String, dynamic>?) ?? dados,
+    );
+    final perfilMap = dados['perfil'] as Map<String, dynamic>?;
+    final perfil = perfilMap != null ? Usuario.fromJson(perfilMap) : null;
+    return (assinatura, perfil);
+  }
+
+  /// Cancela a assinatura ativa no Mercado Pago e volta ao plano gratuito (15 pacientes).
+  Future<(StatusAssinaturaNutricionista, Usuario?)> cancelarAssinatura() async {
+    final resposta = await _api.post('/assinatura/cancelar');
+    final dados = lerDados(resposta, (d) => d);
+    final assinatura = StatusAssinaturaNutricionista.fromJson(
+      (dados['assinatura'] as Map<String, dynamic>?) ?? dados,
+    );
+    final perfilMap = dados['perfil'] as Map<String, dynamic>?;
+    final perfil = perfilMap != null ? Usuario.fromJson(perfilMap) : null;
+    return (assinatura, perfil);
+  }
 }

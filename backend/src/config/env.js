@@ -12,6 +12,11 @@ const toInt = (value, fallback) => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
+const toFloat = (value, fallback) => {
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
 const config = {
   port: toInt(process.env.PORT, 3000),
   corsOrigin: process.env.CORS_ORIGIN || '*',
@@ -31,6 +36,24 @@ const config = {
     modoDemo:
       process.env.NODE_ENV !== 'production' &&
       (process.env.FIREBASE_DEMO_MODE || '') === 'true',
+
+    // Exige que o e-mail do Firebase Auth esteja verificado (email_verified = true)
+    // para acessar as rotas autenticadas da API em producao.
+    exigirEmailVerificado:
+      (process.env.FIREBASE_REQUIRE_EMAIL_VERIFIED || '') === 'true',
+  },
+
+  mercadoPago: {
+    // Access Token do Mercado Pago (TEST-... em sandbox ou APP_USR-... em producao).
+    // Quando vazio, o servico opera em modo de simulacao integrado ao Firestore.
+    accessToken: (process.env.MP_ACCESS_TOKEN || '').trim(),
+    publicKey: (process.env.MP_PUBLIC_KEY || '').trim(),
+    webhookSecret: (process.env.MP_WEBHOOK_SECRET || '').trim(),
+    backUrl:
+      (process.env.MP_BACK_URL || '').trim() ||
+      'https://meuvirtualnutri.app/assinatura-retorno',
+    precoMensal: toFloat(process.env.ASSINATURA_PRECO_MENSAL, 29.9),
+    limitePacientesGratuito: toInt(process.env.LIMITE_PACIENTES_GRATUITO, 15),
   },
 };
 

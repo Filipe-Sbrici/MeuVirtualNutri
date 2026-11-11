@@ -25,6 +25,7 @@ import '../services/foto_perfil_service.dart';
 import '../widgets/common.dart';
 import '../widgets/foto_perfil.dart';
 import 'aparencia_acessibilidade_screen.dart';
+import 'assinatura_nutricionista_screen.dart';
 import 'dados_perfil_screen.dart';
 import 'notificacoes_config_screen.dart';
 import 'perfil_screen.dart';
@@ -233,17 +234,63 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        usuario.email,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: escuro
-                              ? AppColors.fonteSubtituloClaro
-                              : AppColors.fonteSubtitulo,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              usuario.email,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: escuro
+                                    ? AppColors.fonteSubtituloClaro
+                                    : AppColors.fonteSubtitulo,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (usuario.emailVerificado) ...[
+                            const SizedBox(width: 4),
+                            const Tooltip(
+                              message: 'E-mail verificado',
+                              child: Icon(
+                                Icons.verified_rounded,
+                                size: 14,
+                                color: AppColors.paletaVerde,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
+                      if (ehNutri) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: usuario.ehAssinante
+                                ? AppColors.paletaVerde.withValues(alpha: 0.16)
+                                : AppColors.paletaRoxo.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            usuario.ehAssinante
+                                ? '★ Assinante Pro • Pacientes ilimitados'
+                                : 'Plano Gratuito • Limite de ${usuario.limitePacientes ?? 15} pacientes',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: usuario.ehAssinante
+                                  ? AppColors.verdeEscuro
+                                  : (escuro
+                                      ? AppColors.paletaLilasSuave
+                                      : AppColors.paletaRoxo),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -252,6 +299,39 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
           ),
 
           const SizedBox(height: 20),
+
+          // -------------------------------------------------------------
+          // 0. Plano e Assinatura (Exclusivo para Nutricionista)
+          // -------------------------------------------------------------
+          if (ehNutri) ...[
+            _botaoConfig(
+              context: context,
+              icone: Icons.workspace_premium_rounded,
+              titulo: 'Plano e Assinatura',
+              subtitulo: usuario.ehAssinante
+                  ? 'Plano Pro Ativo • Pacientes ilimitados (Mercado Pago)'
+                  : 'Até ${usuario.limitePacientes ?? 15} pacientes grátis • Assine Pro por R\$ 29,90/mês',
+              corIcone: const Color(0xFF009EE3),
+              corFundoIcone: const Color(0xFF009EE3).withValues(alpha: 0.14),
+              escuro: escuro,
+              aoPressionar: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AssinaturaNutricionistaScreen(
+                      usuario: usuario,
+                      nutricionistaService:
+                          NutricionistaService(onboardingService.api),
+                      aoAtualizarUsuario: (u) {
+                        setState(() => _usuario = u);
+                        aoAtualizarUsuario(u);
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // -------------------------------------------------------------
           // 1. Dados Profissionais / Dados Pessoais

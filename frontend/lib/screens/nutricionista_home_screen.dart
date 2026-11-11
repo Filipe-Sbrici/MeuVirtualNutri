@@ -16,6 +16,7 @@ import '../services/chat_service.dart';
 import '../services/api_services.dart';
 import '../services/mvn_services.dart';
 import '../widgets/common.dart';
+import 'assinatura_nutricionista_screen.dart';
 import 'chat_screen.dart';
 import 'configuracoes_screen.dart';
 import 'evolucao_screen.dart';
@@ -133,9 +134,11 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
         1 => PacientesTab(
             key: ValueKey('pacientes-$_versaoPacientes'),
             uidLogado: _usuarioAtual.uid,
+            usuario: _usuarioAtual,
             nutricionistaService: widget.nutricionistaService,
             chatService: widget.chatService,
             evolucaoService: widget.evolucaoService,
+            aoAbrirAssinatura: _abrirTelaAssinatura,
           ),
         2 => ReceitasTab(nutricionistaService: widget.nutricionistaService),
         3 => AgendaTab(nutricionistaService: widget.nutricionistaService),
@@ -616,16 +619,20 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$_totalPacientes Pacientes Ativos',
+                        _usuarioAtual.ehAssinante
+                            ? '$_totalPacientes Pacientes Ativos (Plano Pro)'
+                            : '$_totalPacientes / ${_usuarioAtual.limitePacientes ?? 15} Pacientes Ativos',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Gerencie planos alimentares e evolução',
-                        style: TextStyle(
+                      Text(
+                        _usuarioAtual.ehAssinante
+                            ? 'Pacientes ilimitados liberados pela sua assinatura'
+                            : 'Plano Gratuito (máx. ${_usuarioAtual.limitePacientes ?? 15} pacientes) • Pro R\$ 29,90/mês',
+                        style: const TextStyle(
                           fontSize: 11.5,
                           color: AppColors.textoSuave,
                         ),
@@ -656,7 +663,69 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
   }
 
 
+  void _abrirTelaAssinatura() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AssinaturaNutricionistaScreen(
+          usuario: _usuarioAtual,
+          nutricionistaService: widget.nutricionistaService,
+          aoAtualizarUsuario: (u) {
+            if (!mounted) return;
+            setState(() => _usuarioAtual = u);
+            _carregarDadosHome();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exibirDialogoLimitePacientes([String? mensagemErro]) async {
+    final irParaAssinatura = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.workspace_premium_rounded, color: Color(0xFF009EE3)),
+            SizedBox(width: 8),
+            Expanded(child: Text('Limite de 15 Pacientes Atingido')),
+          ],
+        ),
+        content: Text(
+          mensagemErro ??
+              'No Plano Gratuito você pode atender até 15 pacientes ativos.\n\n'
+                  'Assine o Plano Pro por apenas R\$ 29,90/mês via Mercado Pago '
+                  'nas Configurações para liberar pacientes ilimitados.',
+          style: const TextStyle(fontSize: 13.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Agora não'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.paletaVerde,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Ver Plano Pro (R\$ 29,90/mês)'),
+          ),
+        ],
+      ),
+    );
+
+    if (irParaAssinatura == true && mounted) {
+      _abrirTelaAssinatura();
+    }
+  }
+
   Future<void> _vincularPacienteDialog() async {
+    final limite = _usuarioAtual.limitePacientes ?? 15;
+    if (!_usuarioAtual.ehAssinante && _totalPacientes >= limite) {
+      await _exibirDialogoLimitePacientes();
+      return;
+    }
+
     final controlador = TextEditingController();
     final confirmado = await showDialog<bool>(
       context: context,
@@ -713,6 +782,8 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
       if (!mounted) return;
       // Recria a aba de pacientes para a lista refletir o novo vinculo.
       setState(() => _versaoPacientes++);
+      await _carregarDadosHome();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Paciente vinculado com sucesso!'),
@@ -721,6 +792,11 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
       );
     } on ApiException catch (erro) {
       if (!mounted) return;
+      if (erro.status == 403 &&
+          erro.mensagem.toLowerCase().contains('limite')) {
+        await _exibirDialogoLimitePacientes(erro.mensagem);
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(erro.mensagem)),
       );
@@ -739,12 +815,16 @@ class PacientesTab extends StatefulWidget {
     required this.nutricionistaService,
     required this.chatService,
     required this.evolucaoService,
+    this.usuario,
+    this.aoAbrirAssinatura,
   });
 
   final String uidLogado;
   final NutricionistaService nutricionistaService;
   final ChatService chatService;
   final EvolucaoService evolucaoService;
+  final Usuario? usuario;
+  final VoidCallback? aoAbrirAssinatura;
 
   @override
   State<PacientesTab> createState() => _PacientesTabState();
@@ -802,6 +882,28 @@ class _PacientesTabState extends State<PacientesTab>
   }
 
   Future<void> _aceitarSolicitacao(PacienteResumo paciente) async {
+    final usuario = widget.usuario;
+    final limite = usuario?.limitePacientes ?? 15;
+    if (usuario != null &&
+        !usuario.ehAssinante &&
+        _pacientes.length >= limite) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Limite de 15 pacientes atingido no Plano Gratuito. Assine o Plano Pro (R\$ 29,90/mês) nas Configurações.',
+          ),
+          action: widget.aoAbrirAssinatura != null
+              ? SnackBarAction(
+                  label: 'Assinar Pro',
+                  textColor: Colors.white,
+                  onPressed: widget.aoAbrirAssinatura!,
+                )
+              : null,
+        ),
+      );
+      return;
+    }
+
     try {
       await widget.nutricionistaService.aceitarSolicitacao(paciente.uid);
       if (!mounted) return;
@@ -815,7 +917,15 @@ class _PacientesTabState extends State<PacientesTab>
     } on ApiException catch (erro) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(erro.mensagem)),
+        SnackBar(
+          content: Text(erro.mensagem),
+          action: (erro.status == 403 && widget.aoAbrirAssinatura != null)
+              ? SnackBarAction(
+                  label: 'Assinar Pro',
+                  onPressed: widget.aoAbrirAssinatura!,
+                )
+              : null,
+        ),
       );
     }
   }

@@ -31,6 +31,7 @@ import 'screens/login_screen.dart';
 import 'screens/nutricionista_home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/paciente_home_screen.dart';
+import 'screens/verificacao_email_screen.dart';
 import 'services/api_services.dart';
 import 'services/chat_service.dart';
 import 'services/mvn_services.dart';
@@ -84,10 +85,15 @@ class _MvnAppState extends State<MvnApp> {
       return;
     }
     try {
+      await user.reload();
+      final verificado =
+          FirebaseAuth.instance.currentUser?.emailVerified ?? false;
       final usuario = await _authService.carregarPerfil();
       if (!mounted) return;
       setState(() {
-        _usuarioLogado = usuario;
+        _usuarioLogado = usuario.copiarCom(
+          <String, dynamic>{'emailVerificado': verificado},
+        );
         _inicializando = false;
       });
     } on ApiException {
@@ -155,6 +161,18 @@ class _MvnAppState extends State<MvnApp> {
       return LoginScreen(
         authService: _authService,
         aoAutenticar: _definirUsuario,
+      );
+    }
+
+    // Exige confirmacao do link enviado por e-mail antes de liberar o app.
+    if (!usuario.emailVerificado) {
+      return VerificacaoEmailScreen(
+        usuario: usuario,
+        authService: _authService,
+        aoConfirmarVerificacao: () => _definirUsuario(
+          usuario.copiarCom(const <String, dynamic>{'emailVerificado': true}),
+        ),
+        aoFazerLogout: _fazerLogout,
       );
     }
 

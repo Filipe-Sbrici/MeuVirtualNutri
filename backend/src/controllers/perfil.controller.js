@@ -143,6 +143,7 @@ async function atualizarPerfil(req, res, next) {
 
     if (b.nome !== undefined) campos.nome = String(b.nome).trim().slice(0, 100);
     if (b.telefone !== undefined) campos.telefone = String(b.telefone).trim().slice(0, 20) || null;
+    if (b.crn !== undefined) campos.crn = String(b.crn).trim().slice(0, 20) || null;
     if (b.especializacao !== undefined) campos.especializacao = String(b.especializacao).trim().slice(0, 100) || null;
     if (b.idade !== undefined) campos.idade = Math.round(parseNumber(b.idade, 'idade', { min: 10, max: 120 }));
     if (b.pesoAtual !== undefined) campos.pesoAtual = arredondar(parseNumber(b.pesoAtual, 'pesoAtual', { min: 20, max: 400 }));
