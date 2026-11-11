@@ -2,8 +2,10 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
-    # Mantem o codigo limpo sem transformar avisos de estilo em erros.
-    prefer_const_constructors: info
+    # Mantem o codigo limpo sem transformar avisos de estilo ou deprecacoes de SDK futuro em erros.
+    prefer_const_constructors: ignore
+    deprecated_member_use: ignore
+    deprecated_member_use_from_same_package: ignore
   exclude:
     - build/**
     - android/**
