@@ -303,7 +303,7 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
                     builder: (_) => AssinaturaNutricionistaScreen(
                       usuario: usuario,
                       nutricionistaService:
-                          NutricionistaService(authService.api),
+                        nutricionistaService: NutricionistaService(authService.api),
                       aoAtualizarUsuario: (u) {
                         setState(() => _usuario = u);
                         aoAtualizarUsuario(u);
