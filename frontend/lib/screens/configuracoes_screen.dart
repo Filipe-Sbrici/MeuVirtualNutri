@@ -302,7 +302,7 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
                   MaterialPageRoute(
                     builder: (_) => AssinaturaNutricionistaScreen(
                       usuario: usuario,
-                      nutricionistaService: NutricionistaService(ApiClient()),
+                        nutricionistaService: NutricionistaService(authService.api),
                       aoAtualizarUsuario: (u) {
                         setState(() => _usuario = u);
                         aoAtualizarUsuario(u);
