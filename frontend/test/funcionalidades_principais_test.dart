@@ -941,6 +941,7 @@ void main() {
       expect(find.text('pteste@gmail.com'), findsOneWidget);
 
       // Tenta confirmar antes de clicar no link do e-mail -> mostra aviso
+      await _rolarAte(tester, find.text('Ja confirmei meu e-mail'));
       await tester.tap(find.text('Ja confirmei meu e-mail'));
       await tester.pumpAndSettle();
       expect(verificacaoLiberada, isFalse);
@@ -949,7 +950,8 @@ void main() {
         findsOneWidget,
       );
 
-      // Reenvia o link de verificação
+      // Reenvia o link de verificação (rola até o botão pois o banner expandiu a tela)
+      await _rolarAte(tester, find.text('Reenviar link de verificacao'));
       await tester.tap(find.text('Reenviar link de verificacao'));
       await tester.pumpAndSettle();
       expect(authService.totalReenviosEmail, 1);
@@ -960,6 +962,7 @@ void main() {
 
       // Simula que o usuário clicou no link recebido por e-mail
       authService.emailConfirmadoSimulado = true;
+      await _rolarAte(tester, find.text('Ja confirmei meu e-mail'));
       await tester.tap(find.text('Ja confirmei meu e-mail'));
       await tester.pumpAndSettle();
 
