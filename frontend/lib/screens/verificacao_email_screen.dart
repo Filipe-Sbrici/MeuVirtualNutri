@@ -51,6 +51,9 @@ class _VerificacaoEmailScreenState extends State<VerificacaoEmailScreen> {
       if (!mounted) return;
 
       if (confirmado) {
+        setState(() {
+          _verificando = false;
+        });
         widget.aoConfirmarVerificacao();
       } else {
         setState(() {
