@@ -11,6 +11,7 @@ class OnboardingService {
   OnboardingService(this._api);
 
   final ApiClient _api;
+  ApiClient get api => _api;
 
   /// Carrega a foto privada do usuario autenticado atual.
   Future<Map<String, dynamic>?> carregarFotoPerfil() async {
@@ -174,6 +175,7 @@ class CardapioService {
   CardapioService(this._api);
 
   final ApiClient _api;
+  ApiClient get api => _api;
 
   /// Refeicoes de hoje + resumo do checklist.
   Future<CardapioDoDia> carregarHoje() async {

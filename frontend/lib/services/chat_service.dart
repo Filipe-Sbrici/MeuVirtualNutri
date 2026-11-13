@@ -8,6 +8,7 @@ class ChatService {
   ChatService(this._api);
 
   final ApiClient _api;
+  ApiClient get api => _api;
 
   /// Conversa completa entre o usuario logado e o contato.
   Future<Conversa> carregarConversa({required String idContato}) async {

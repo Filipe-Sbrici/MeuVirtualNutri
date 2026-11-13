@@ -16,6 +16,8 @@ class AuthService {
   final ApiClient _api;
   final FirebaseAuth? _firebaseAuthInicial;
 
+  ApiClient get api => _api;
+
   /// Acesso lazy: tests substituem os metodos que o utilizam sem
   /// precisar de um FirebaseApp inicializado.
   FirebaseAuth get _auth => _firebaseAuthInicial ?? FirebaseAuth.instance;
