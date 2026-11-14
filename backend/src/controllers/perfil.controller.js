@@ -28,20 +28,31 @@ async function listarNutricionistas(req, res, next) {
   }
 }
 
-/** POST /api/onboarding/nutricionista - etapa 1: vinculo. */
+/** POST /api/onboarding/nutricionista - etapa 1: solicitacao de vinculo por e-mail ou uid. */
 async function escolherNutricionista(req, res, next) {
   try {
+    const email = String(req.body.email || req.body.emailNutricionista || '').trim().toLowerCase();
     const uidNutricionista = String(req.body.uidNutricionista || '').trim();
-    if (!uidNutricionista) {
-      throw AppError.badRequest('Informe o nutricionista escolhido.');
+    if (!email && !uidNutricionista) {
+      throw AppError.badRequest('Informe o e-mail do nutricionista.');
     }
-    const nutri = await usuarioRepo.buscarPorUid(uidNutricionista);
+    const nutri = email
+      ? await usuarioRepo.buscarPorEmail(email)
+      : await usuarioRepo.buscarPorUid(uidNutricionista);
     if (!nutri || nutri.tipoUsuario !== 'nutricionista') {
-      throw AppError.notFound('Nutricionista nao encontrado.');
+      throw AppError.notFound('Nutricionista nao encontrado com este e-mail.');
     }
 
-    await usuarioRepo.vincularNutricionista(req.usuario.uid, uidNutricionista, 'pendente');
-    res.json({ sucesso: true, dados: { idNutricionista: uidNutricionista, statusVinculo: 'pendente' } });
+    await usuarioRepo.vincularNutricionista(req.usuario.uid, nutri.uid, 'pendente');
+    res.json({
+      sucesso: true,
+      dados: {
+        idNutricionista: nutri.uid,
+        nomeNutricionista: nutri.nome,
+        emailNutricionista: nutri.email,
+        statusVinculo: 'pendente',
+      },
+    });
   } catch (erro) {
     next(erro);
   }
@@ -173,10 +184,11 @@ async function atualizarPerfil(req, res, next) {
   }
 }
 
-/** GET /api/perfil/foto - imagem do proprio usuario autenticado. */
+/** GET /api/perfil/foto - imagem do usuario informado (ou do proprio usuario autenticado). */
 async function obterFotoPerfil(req, res, next) {
   try {
-    const foto = await usuarioRepo.buscarFotoPerfil(req.usuario.uid);
+    const uidAlvo = String(req.query.uid || req.usuario.uid).trim();
+    const foto = await usuarioRepo.buscarFotoPerfil(uidAlvo);
     res.json({ sucesso: true, dados: { foto: foto ? {
       mimeType: foto.mimeType,
       dadosBase64: foto.dadosBase64,

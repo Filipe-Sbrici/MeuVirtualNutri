@@ -1,12 +1,12 @@
 /// Onboarding do paciente (telas 4.5.5 a 4.5.11 do prototipo).
 ///
 /// Etapas em sequencia, cada uma gravando no perfil (usuarios/{uid}):
-///   1. Escolher o nutricionista (com filtro por especializacao)
+///   1. Vincular ao nutricionista informando o e-mail (envio de solicitacao)
 ///   2. Dados pessoais: idade, sexo, peso, altura (+ peso-meta)
 ///   3. Nivel de atividade fisica + objetivo nutricional
 ///   4. Perfil alimentar: tipo de dieta, favoritos, rejeitados
 ///   5. Restricoes/alergias + condicoes medicas
-///   6. Tutorial interativo (4 cartoes) antes do primeiro acesso.
+///   6. Tutorial interativo (5 cartoes) antes do primeiro acesso.
 library;
 
 import 'package:flutter/material.dart';
@@ -53,10 +53,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const int _totalEtapas = 6;
 
-  // Etapa 1: nutricionistas.
-  List<NutricionistaResumo> _nutricionistas = [];
-  String? _uidNutricionistaEscolhido;
-  String _filtroEspecializacao = 'Todas';
+  // Etapa 1: solicitacao de vinculo com nutricionista por e-mail.
+  final _emailNutricionistaController = TextEditingController();
+  bool _pularNutricionista = false;
 
   // Etapa 2: dados pessoais.
   final _idadeController = TextEditingController();
@@ -119,7 +118,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _carregarNutricionistas();
     // Pre-popula com o que ja existe no perfil (onboarding retomado).
     final u = widget.usuario;
     if (u.idade != null) _idadeController.text = u.idade.toString();
@@ -143,6 +141,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _paginas.dispose();
+    _emailNutricionistaController.dispose();
     _idadeController.dispose();
     _pesoController.dispose();
     _alturaController.dispose();
@@ -154,40 +153,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  Future<void> _carregarNutricionistas() async {
-    try {
-      final lista = await widget.onboardingService.listarNutricionistas();
-      if (!mounted) return;
-      setState(() => _nutricionistas = lista);
-    } on ApiException catch (erro) {
-      if (!mounted) return;
-      setState(() => _erro = erro.mensagem);
-    }
-  }
-
-  List<NutricionistaResumo> get _nutricionistasFiltrados {
-    if (_filtroEspecializacao == 'Todas') return _nutricionistas;
-    return _nutricionistas
-        .where((n) =>
-            (n.especializacao ?? '').toLowerCase().contains(
-                  _filtroEspecializacao.toLowerCase(),
-                ))
-        .toList();
-  }
-
-  List<String> get _especializacoesDisponiveis => [
-        'Todas',
-        ..._nutricionistas
-            .map((n) => n.especializacao ?? 'Geral')
-            .toSet()
-            .toList()..sort(),
-      ];
-
   Future<void> _avancar() async {
-    // Validacoes por etapa antes de salvar.
-    if (_etapa == 0 && _uidNutricionistaEscolhido == null) {
-      _mostrarErro('Escolha um nutricionista para continuar.');
-      return;
+    final emailNutri = _emailNutricionistaController.text.trim();
+    if (_etapa == 0 && !_pularNutricionista) {
+      if (emailNutri.isEmpty || !emailNutri.contains('@')) {
+        _mostrarErro(
+          'Informe o e-mail válido do seu nutricionista ou marque a opção para vincular depois.',
+        );
+        return;
+      }
     }
 
     setState(() {
@@ -198,8 +172,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       switch (_etapa) {
         case 0:
-          await widget.onboardingService
-              .escolherNutricionista(_uidNutricionistaEscolhido!);
+          if (!_pularNutricionista) {
+            await widget.onboardingService
+                .solicitarNutricionistaPorEmail(emailNutri);
+          }
         case 1:
           await widget.onboardingService.salvarDadosPessoais(
             idade: int.parse(_idadeController.text.trim()),
@@ -278,6 +254,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  bool get _ehEscuro => Theme.of(context).brightness == Brightness.dark;
+  Color get _corTitulo => _ehEscuro ? AppColors.paletaClaro : AppColors.texto;
+  Color get _corSubtitulo =>
+      _ehEscuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave;
+  Color get _corBorda => _ehEscuro ? AppColors.bordaEscura : AppColors.borda;
+  Color get _corSuperficie =>
+      _ehEscuro ? AppColors.paletaEscuroCard : Colors.white;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -326,7 +310,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _indicadorEtapas() {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: _corSuperficie,
+        border: Border(bottom: BorderSide(color: _corBorda)),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
@@ -334,9 +321,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
-                value: _etapa / _totalEtapas,
+                value: (_etapa + 1) / _totalEtapas,
                 minHeight: 8,
-                backgroundColor: AppColors.cinzaTrilha,
+                backgroundColor:
+                    _ehEscuro ? AppColors.bordaEscura : AppColors.cinzaTrilha,
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppColors.verdeBarra),
               ),
@@ -345,10 +333,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const SizedBox(width: 10),
           Text(
             'Etapa ${_etapa + 1}/$_totalEtapas',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: AppColors.textoSuave,
+              color: _corSubtitulo,
             ),
           ),
         ],
@@ -358,7 +346,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _barraInferior() {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: _corSuperficie,
+        border: Border(top: BorderSide(color: _corBorda)),
+      ),
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
@@ -372,8 +363,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: OutlinedButton(
                 onPressed: _salvando ? null : _voltar,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textoSuave,
-                  side: const BorderSide(color: AppColors.borda),
+                  foregroundColor: _corSubtitulo,
+                  side: BorderSide(color: _corBorda),
                   minimumSize: const Size.fromHeight(46),
                 ),
                 child: const Text('Voltar'),
@@ -396,75 +387,149 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // ================= Etapa 1: nutricionista =================
+  // ================= Etapa 1: nutricionista (por e-mail) =================
   Widget _etapaNutricionista() {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
-          'Escolha seu nutricionista',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+        Text(
+          'Vincule seu nutricionista',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Ele acompanhará sua evolução e montará seu plano alimentar.',
-          style: TextStyle(fontSize: 13, color: AppColors.textoSuave),
+        Text(
+          'Informe o e-mail do seu nutricionista para enviar uma solicitação de acompanhamento. Assim que ele aceitar, seu cardápio e orientações ficarão disponíveis.',
+          style: TextStyle(fontSize: 13, color: _corSubtitulo, height: 1.4),
         ),
-        const SizedBox(height: 14),
-        if (_nutricionistas.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 30),
-            child: Center(
-              child: Text(
-                'Nenhum nutricionista disponivel ainda.\nTente novamente em instantes.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textoSuave, fontSize: 13),
-              ),
-            ),
-          )
-        else ...[
-          SizedBox(
-            height: 38,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: _especializacoesDisponiveis
-                  .map((esp) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(esp),
-                          selected: _filtroEspecializacao == esp,
-                          onSelected: (_) => setState(
-                            () => _filtroEspecializacao = esp,
+        const SizedBox(height: 18),
+        MvnCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _ehEscuro
+                          ? const Color(0xFF21262D)
+                          : AppColors.paletaLilasSuave,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.person_add_alt_1_rounded,
+                      color: _ehEscuro
+                          ? AppColors.paletaLilasSuave
+                          : AppColors.paletaRoxo,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Solicitação de vínculo',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: _corTitulo,
                           ),
-                          selectedColor: AppColors.paletaVerdeSuave,
-                          labelStyle: TextStyle(
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Digite o e-mail cadastrado pelo seu nutricionista',
+                          style: TextStyle(
                             fontSize: 12,
-                            color: _filtroEspecializacao == esp
-                                ? (Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? AppColors.paletaLilasSuave
-                                    : AppColors.paletaRoxo)
-                                : AppColors.textoSuave,
+                            color: _corSubtitulo,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailNutricionistaController,
+                enabled: !_pularNutricionista,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                style: TextStyle(color: _corTitulo, fontSize: 14),
+                decoration: InputDecoration(
+                  labelText: 'E-mail do nutricionista',
+                  hintText: 'exemplo@nutri.com',
+                  labelStyle: TextStyle(color: _corSubtitulo, fontSize: 13),
+                  hintStyle: TextStyle(color: _corSubtitulo, fontSize: 13),
+                  prefixIcon: Icon(
+                    Icons.alternate_email_rounded,
+                    color: _ehEscuro
+                        ? AppColors.verdeClaro
+                        : AppColors.verdeEscuro,
+                    size: 20,
+                  ),
+                  filled: true,
+                  fillColor: _ehEscuro
+                      ? const Color(0xFF0D1117)
+                      : AppColors.cinzaCampo,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: _corBorda),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: _corBorda.withValues(alpha: 0.5)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        const BorderSide(color: AppColors.verde, width: 1.6),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => setState(() {
+                  _pularNutricionista = !_pularNutricionista;
+                  _erro = null;
+                }),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _pularNutricionista,
+                        activeColor: AppColors.verde,
+                        onChanged: (v) => setState(() {
+                          _pularNutricionista = v ?? false;
+                          _erro = null;
+                        }),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Ainda não tenho nutricionista (vincular mais tarde na aba Meu Nutri)',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: _corSubtitulo,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ))
-                  .toList(),
-            ),
-          ),
-          const SizedBox(height: 10),
-          for (final nutri in _nutricionistasFiltrados)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _CartaoNutricionista(
-                nutricionista: nutri,
-                selecionado: _uidNutricionistaEscolhido == nutri.uid,
-                aoSelecionar: () => setState(
-                  () => _uidNutricionistaEscolhido = nutri.uid,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -474,9 +539,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
+        Text(
           'Dados pessoais',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 16),
         MvnCard(
@@ -484,9 +553,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('Idade',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      'Idade',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: _corTitulo,
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 90,
@@ -494,17 +569,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       controller: _idadeController,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
+                      style: TextStyle(color: _corTitulo),
                       decoration: _decoracaoCampo(sufixo: 'anos'),
                     ),
                   ),
                 ],
               ),
-              const Divider(height: 22),
+              Divider(height: 22, color: _corBorda),
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('Peso atual',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      'Peso atual',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: _corTitulo,
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 100,
@@ -513,17 +595,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       textAlign: TextAlign.center,
+                      style: TextStyle(color: _corTitulo),
                       decoration: _decoracaoCampo(sufixo: 'kg'),
                     ),
                   ),
                 ],
               ),
-              const Divider(height: 22),
+              Divider(height: 22, color: _corBorda),
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('Altura',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      'Altura',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: _corTitulo,
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 100,
@@ -532,17 +621,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       textAlign: TextAlign.center,
+                      style: TextStyle(color: _corTitulo),
                       decoration: _decoracaoCampo(sufixo: 'm'),
                     ),
                   ),
                 ],
               ),
-              const Divider(height: 22),
+              Divider(height: 22, color: _corBorda),
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('Peso-meta (opcional)',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      'Peso-meta (opcional)',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: _corTitulo,
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 100,
@@ -551,6 +647,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       textAlign: TextAlign.center,
+                      style: TextStyle(color: _corTitulo),
                       decoration: _decoracaoCampo(sufixo: 'kg'),
                     ),
                   ),
@@ -560,9 +657,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Sexo',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 10),
         Row(
@@ -575,11 +676,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         label: Center(child: Text(g)),
                         selected: _genero == g,
                         onSelected: (_) => setState(() => _genero = g),
+                        backgroundColor: _corSuperficie,
                         selectedColor: AppColors.verde,
+                        side: BorderSide(
+                          color: _genero == g ? AppColors.verde : _corBorda,
+                        ),
                         labelStyle: TextStyle(
                           fontSize: 12.5,
-                          color:
-                              _genero == g ? Colors.white : AppColors.textoSuave,
+                          color: _genero == g ? Colors.white : _corSubtitulo,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -596,19 +700,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
+        Text(
           'Estilo de vida',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Nivel de atividade fisica e objetivo nutricional.',
-          style: TextStyle(fontSize: 13, color: AppColors.textoSuave),
+          style: TextStyle(fontSize: 13, color: _corSubtitulo),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Nivel de atividade',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 10),
         ..._opcoesAtividade.map(
@@ -622,9 +734,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
+        Text(
           'Objetivo nutricional',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 10),
         ..._opcoesMeta.map(
@@ -651,18 +767,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
+        Text(
           'Perfil alimentar',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Essas informacoes vao direto para o seu nutricionista.',
-          style: TextStyle(fontSize: 13, color: AppColors.textoSuave),
+          style: TextStyle(fontSize: 13, color: _corSubtitulo),
         ),
         const SizedBox(height: 16),
-        const Text('Tipo de dieta',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(
+          'Tipo de dieta',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
+        ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -672,10 +798,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     label: Text(d),
                     selected: _tipoDieta == d,
                     onSelected: (_) => setState(() => _tipoDieta = d),
+                    backgroundColor: _corSuperficie,
                     selectedColor: AppColors.verde,
+                    side: BorderSide(
+                      color: _tipoDieta == d ? AppColors.verde : _corBorda,
+                    ),
                     labelStyle: TextStyle(
                       fontSize: 12.5,
-                      color: _tipoDieta == d ? Colors.white : AppColors.textoSuave,
+                      color: _tipoDieta == d ? Colors.white : _corSubtitulo,
                       fontWeight: FontWeight.w600,
                     ),
                   ))
@@ -708,18 +838,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
+        Text(
           'Restricoes e saude',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Informacoes essenciais para um plano alimentar seguro.',
-          style: TextStyle(fontSize: 13, color: AppColors.textoSuave),
+          style: TextStyle(fontSize: 13, color: _corSubtitulo),
         ),
         const SizedBox(height: 16),
-        const Text('Alergias e intolerancias',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(
+          'Alergias e intolerancias',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
+        ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -735,14 +875,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         _restricoes.remove(r);
                       }
                     }),
-                    selectedColor: AppColors.paletaLilasSuave,
+                    backgroundColor: _corSuperficie,
+                    selectedColor: _ehEscuro
+                        ? AppColors.paletaRoxo.withValues(alpha: 0.35)
+                        : AppColors.paletaLilasSuave,
+                    checkmarkColor: _ehEscuro
+                        ? AppColors.paletaLilasSuave
+                        : AppColors.paletaRoxo,
+                    side: BorderSide(
+                      color: _restricoes.contains(r)
+                          ? AppColors.paletaRoxo
+                          : _corBorda,
+                    ),
                     labelStyle: TextStyle(
                       fontSize: 12.5,
                       color: _restricoes.contains(r)
-                          ? (Theme.of(context).brightness == Brightness.dark
+                          ? (_ehEscuro
                               ? AppColors.paletaLilasSuave
                               : AppColors.paletaRoxo)
-                          : AppColors.textoSuave,
+                          : _corSubtitulo,
                     ),
                   ))
               .toList(),
@@ -759,8 +910,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           aoRemover: (v) => setState(() => _restricoes.remove(v)),
         ),
         const SizedBox(height: 14),
-        const Text('Condicoes medicas',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(
+          'Condicoes medicas',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: _corTitulo,
+          ),
+        ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -776,14 +933,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         _condicoes.remove(c);
                       }
                     }),
-                    selectedColor: AppColors.paletaLilasSuave,
+                    backgroundColor: _corSuperficie,
+                    selectedColor: _ehEscuro
+                        ? AppColors.paletaRoxo.withValues(alpha: 0.35)
+                        : AppColors.paletaLilasSuave,
+                    checkmarkColor: _ehEscuro
+                        ? AppColors.paletaLilasSuave
+                        : AppColors.paletaRoxo,
+                    side: BorderSide(
+                      color: _condicoes.contains(c)
+                          ? AppColors.paletaRoxo
+                          : _corBorda,
+                    ),
                     labelStyle: TextStyle(
                       fontSize: 12.5,
                       color: _condicoes.contains(c)
-                          ? (Theme.of(context).brightness == Brightness.dark
+                          ? (_ehEscuro
                               ? AppColors.paletaLilasSuave
                               : AppColors.paletaRoxo)
-                          : AppColors.textoSuave,
+                          : _corSubtitulo,
                     ),
                   ))
               .toList(),
@@ -821,14 +989,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
       children: [
-        const Text(
+        Text(
           'Bem-vindo(a)!',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.texto),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: _corTitulo,
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Um tour rapido pelo que voce pode fazer no Meu Virtual Nutri:',
-          style: TextStyle(fontSize: 13, color: AppColors.textoSuave),
+          style: TextStyle(fontSize: 13, color: _corSubtitulo),
         ),
         const SizedBox(height: 16),
         for (final (emoji, titulo, descricao) in cartoes)
@@ -847,18 +1019,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         Text(
                           titulo,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14.5,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.texto,
+                            color: _corTitulo,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           descricao,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12.5,
-                            color: AppColors.textoSuave,
+                            color: _corSubtitulo,
                             height: 1.35,
                           ),
                         ),
@@ -875,99 +1047,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   InputDecoration _decoracaoCampo({required String sufixo}) => InputDecoration(
         suffixText: sufixo,
+        suffixStyle: TextStyle(color: _corSubtitulo, fontSize: 12),
         isDense: true,
+        filled: true,
+        fillColor:
+            _ehEscuro ? const Color(0xFF0D1117) : AppColors.cinzaCampo,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.borda),
+          borderSide: BorderSide(color: _corBorda),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.verde, width: 1.6),
         ),
       );
-}
-
-class _CartaoNutricionista extends StatelessWidget {
-  const _CartaoNutricionista({
-    required this.nutricionista,
-    required this.selecionado,
-    required this.aoSelecionar,
-  });
-
-  final NutricionistaResumo nutricionista;
-  final bool selecionado;
-  final VoidCallback aoSelecionar;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selecionado ? AppColors.paletaVerdeSuave : Colors.white,
-      borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        onTap: aoSelecionar,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            border: Border.all(
-              color: selecionado ? AppColors.verde : AppColors.borda,
-              width: selecionado ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF21262D)
-                    : AppColors.paletaLilasSuave,
-                child: Icon(
-                  Icons.medical_services,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.paletaLilasSuave
-                      : AppColors.paletaRoxo,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      nutricionista.nome,
-                      style: const TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.texto,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${nutricionista.especializacao ?? 'Nutricao geral'}'
-                      '${nutricionista.crn != null ? ' • ${nutricionista.crn}' : ''}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textoSuave,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                selecionado
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_off_rounded,
-                color: selecionado ? AppColors.verde : AppColors.textoFraco,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _OpcaoSelecionavel extends StatelessWidget {
@@ -985,8 +1080,21 @@ class _OpcaoSelecionavel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final escuro = Theme.of(context).brightness == Brightness.dark;
+    final corFundo = selecionado
+        ? (escuro
+            ? AppColors.verde.withValues(alpha: 0.18)
+            : AppColors.paletaVerdeSuave)
+        : (escuro ? AppColors.paletaEscuroCard : Colors.white);
+    final corTexto = escuro ? AppColors.paletaClaro : AppColors.texto;
+    final corSub =
+        escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave;
+    final corBorda = selecionado
+        ? AppColors.verde
+        : (escuro ? AppColors.bordaEscura : AppColors.borda);
+
     return Material(
-      color: selecionado ? AppColors.paletaVerdeSuave : Colors.white,
+      color: corFundo,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -996,16 +1104,18 @@ class _OpcaoSelecionavel extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selecionado ? AppColors.verde : AppColors.borda,
+              color: corBorda,
               width: selecionado ? 2 : 1,
             ),
           ),
           child: Row(
             children: [
               if (icone != null) ...[
-                Icon(icone,
-                    size: 20,
-                    color: selecionado ? AppColors.verde : AppColors.textoSuave),
+                Icon(
+                  icone,
+                  size: 20,
+                  color: selecionado ? AppColors.verde : corSub,
+                ),
                 const SizedBox(width: 10),
               ],
               Expanded(
@@ -1014,13 +1124,16 @@ class _OpcaoSelecionavel extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: selecionado ? FontWeight.w700 : FontWeight.w500,
-                    color: AppColors.texto,
+                    color: corTexto,
                   ),
                 ),
               ),
               if (selecionado)
-                const Icon(Icons.check_rounded,
-                    color: AppColors.verde, size: 22),
+                const Icon(
+                  Icons.check_rounded,
+                  color: AppColors.verde,
+                  size: 22,
+                ),
             ],
           ),
         ),
@@ -1055,12 +1168,23 @@ class _EditorChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final escuro = Theme.of(context).brightness == Brightness.dark;
+    final corTexto = escuro ? AppColors.paletaClaro : AppColors.texto;
+    final corSub =
+        escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave;
+    final corBorda = escuro ? AppColors.bordaEscura : AppColors.borda;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(titulo,
-            style:
-                const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(
+          titulo,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: corTexto,
+          ),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -1068,9 +1192,16 @@ class _EditorChips extends StatelessWidget {
           children: itens
               .map(
                 (item) => InputChip(
-                  label: Text(item, style: const TextStyle(fontSize: 12.5)),
+                  label: Text(
+                    item,
+                    style: TextStyle(fontSize: 12.5, color: corTexto),
+                  ),
+                  deleteIconColor: corSub,
                   onDeleted: () => aoRemover(item),
-                  backgroundColor: AppColors.cinzaSegmento,
+                  backgroundColor: escuro
+                      ? const Color(0xFF21262D)
+                      : AppColors.cinzaSegmento,
+                  side: BorderSide(color: corBorda),
                 ),
               )
               .toList(),
@@ -1078,18 +1209,23 @@ class _EditorChips extends StatelessWidget {
         const SizedBox(height: 8),
         TextField(
           controller: controlador,
+          style: TextStyle(color: corTexto, fontSize: 13.5),
           decoration: InputDecoration(
             hintText: dica,
-            hintStyle: const TextStyle(fontSize: 13),
+            hintStyle: TextStyle(fontSize: 13, color: corSub),
             isDense: true,
+            filled: true,
+            fillColor: escuro ? AppColors.paletaEscuroCard : Colors.white,
             suffixIcon: IconButton(
-              icon: const Icon(Icons.add_circle_outline,
-                  color: AppColors.verde),
+              icon: const Icon(
+                Icons.add_circle_outline,
+                color: AppColors.verde,
+              ),
               onPressed: _adicionar,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.borda),
+              borderSide: BorderSide(color: corBorda),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

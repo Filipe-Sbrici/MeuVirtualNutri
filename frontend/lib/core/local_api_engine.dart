@@ -22,7 +22,7 @@ class LocalApiEngine {
 
   static final LocalApiEngine instance = LocalApiEngine._();
 
-  static const String _chaveBancoLocal = 'mvn_local_api_db_v2';
+  static const String _chaveBancoLocal = 'mvn_local_api_db_v3';
   static const int _limiteGratuito = 15;
   static const double _precoPro = 29.90;
 
@@ -175,15 +175,10 @@ class LocalApiEngine {
       tipoUsuario: ehNutri ? 'nutricionista' : 'paciente',
       crn: ehNutri ? 'CRN-3 45821' : null,
       especializacao: ehNutri ? 'Nutrição Clínica e Esportiva' : null,
+      onboardingCompleto: ehNutri,
       emailVerificado: sessao['emailVerificado'] == true,
     );
     usuarios[uid] = novo;
-    if (ehNutri) {
-      _vincularDadosIniciaisAoNutricionista(db, uid, nome);
-    } else {
-      _garantirPlanoParaPaciente(db, uid, 'nutri_gabriel');
-      _garantirProgressoInicial(db, uid, 68.5);
-    }
     return novo;
   }
 
@@ -229,7 +224,6 @@ class LocalApiEngine {
         emailVerificado: sessao['emailVerificado'] == true,
       );
       usuarios[uid] = perfil;
-      _garantirPlanoParaPaciente(db, uid, 'nutri_gabriel');
       await _salvarDb();
       return _ok(_perfilParaJson(perfil));
     }
@@ -261,7 +255,6 @@ class LocalApiEngine {
         emailVerificado: sessao['emailVerificado'] == true,
       );
       usuarios[uid] = perfil;
-      _vincularDadosIniciaisAoNutricionista(db, uid, nome);
       await _salvarDb();
       return _ok(_perfilParaJson(perfil));
     }
@@ -275,8 +268,11 @@ class LocalApiEngine {
     // ---------------- PERFIL & FOTO ----------------
     if (m == 'GET' && caminho == '/perfil/foto') {
       final perfil = _obterOuCriarPerfilAtual(db);
+      final uidAlvo = (q['uid']?.toString().trim().isNotEmpty == true)
+          ? q['uid'].toString().trim()
+          : (perfil['uid'] as String);
       final fotos = db['fotos'] as Map<String, dynamic>;
-      final foto = fotos[perfil['uid']];
+      final foto = fotos[uidAlvo];
       return _ok(<String, dynamic>{'foto': foto});
     }
 
@@ -333,12 +329,69 @@ class LocalApiEngine {
 
     if (m == 'POST' && caminho == '/onboarding/nutricionista') {
       final perfil = _obterOuCriarPerfilAtual(db);
-      final uidNutri = body['uidNutricionista']?.toString() ?? 'nutri_gabriel';
-      perfil['idNutricionista'] = uidNutri;
-      perfil['statusVinculo'] = 'aprovado';
-      _garantirPlanoParaPaciente(db, perfil['uid'] as String, uidNutri);
+      if (body['pular'] == true) {
+        perfil['idNutricionista'] = null;
+        perfil['statusVinculo'] = null;
+        await _salvarDb();
+        return _ok(<String, dynamic>{'perfil': _perfilParaJson(perfil)});
+      }
+
+      final usuarios = db['usuarios'] as Map<String, dynamic>;
+      final emailRaw =
+          (body['email'] ?? body['emailNutricionista'])?.toString().trim() ??
+              '';
+      final uidOuEmail = body['uidNutricionista']?.toString().trim() ?? '';
+      final buscaEmail = emailRaw.isNotEmpty
+          ? emailRaw.toLowerCase()
+          : (uidOuEmail.contains('@') ? uidOuEmail.toLowerCase() : '');
+
+      Map<String, dynamic>? nutriEncontrado;
+      if (buscaEmail.isNotEmpty) {
+        for (final u in usuarios.values.whereType<Map<String, dynamic>>()) {
+          if (u['tipoUsuario'] == 'nutricionista' &&
+              u['email']?.toString().trim().toLowerCase() == buscaEmail) {
+            nutriEncontrado = u;
+            break;
+          }
+        }
+        if (nutriEncontrado == null) {
+          throw ApiException(
+            'Nenhum nutricionista encontrado com o e-mail informado.',
+            status: 404,
+          );
+        }
+      } else if (uidOuEmail.isNotEmpty) {
+        final candidato = usuarios[uidOuEmail];
+        if (candidato is Map<String, dynamic> &&
+            candidato['tipoUsuario'] == 'nutricionista') {
+          nutriEncontrado = candidato;
+        } else {
+          throw ApiException(
+            'Nutricionista não encontrado.',
+            status: 404,
+          );
+        }
+      } else {
+        throw ApiException(
+          'Informe o e-mail do seu nutricionista.',
+          status: 400,
+        );
+      }
+
+      perfil['idNutricionista'] = nutriEncontrado['uid'];
+      perfil['statusVinculo'] = 'pendente';
       await _salvarDb();
-      return _ok(<String, dynamic>{'perfil': _perfilParaJson(perfil)});
+      return _ok(<String, dynamic>{
+        'perfil': _perfilParaJson(perfil),
+        'statusVinculo': 'pendente',
+        'nutricionista': <String, dynamic>{
+          'uid': nutriEncontrado['uid'],
+          'nome': nutriEncontrado['nome'],
+          'email': nutriEncontrado['email'],
+          'crn': nutriEncontrado['crn'],
+          'especializacao': nutriEncontrado['especializacao'],
+        },
+      });
     }
 
     if (m == 'POST' &&
@@ -655,26 +708,49 @@ class LocalApiEngine {
       final perfil = _obterOuCriarPerfilAtual(db);
       final usuarios = db['usuarios'] as Map<String, dynamic>;
       if (perfil['tipoUsuario'] == 'nutricionista') {
-        final uidPac = q['uidPaciente']?.toString() ?? 'paciente_ana';
-        final pac = (usuarios[uidPac] as Map<String, dynamic>?) ??
-            usuarios['paciente_ana'] as Map<String, dynamic>?;
+        final uidPac = q['uidPaciente']?.toString();
+        Map<String, dynamic>? pac;
+        if (uidPac != null && uidPac.isNotEmpty) {
+          pac = usuarios[uidPac] as Map<String, dynamic>?;
+        } else {
+          final ativos = _listarPacientesAtivosDoNutricionista(
+            db,
+            perfil['uid'] as String,
+          );
+          if (ativos.isNotEmpty) {
+            pac = usuarios[ativos.first['uid']] as Map<String, dynamic>?;
+          }
+        }
+        if (pac == null) {
+          throw ApiException('Nenhum paciente vinculado.', status: 404);
+        }
         return _ok(<String, dynamic>{
-          'idUsuario': pac?['uid'] ?? 'paciente_ana',
-          'nome': pac?['nome'] ?? 'Ana Carolina Silva',
+          'idUsuario': pac['uid'],
+          'nome': pac['nome'] ?? 'Paciente',
+          'email': pac['email'],
           'papel': 'Paciente',
+          'statusVinculo': pac['statusVinculo'] ?? 'aprovado',
         });
       }
-      final uidNutri =
-          (perfil['idNutricionista'] as String?) ?? 'nutri_gabriel';
-      final nutri = (usuarios[uidNutri] as Map<String, dynamic>?) ??
-          usuarios['nutri_gabriel'] as Map<String, dynamic>?;
+      final uidNutri = perfil['idNutricionista'] as String?;
+      final statusVinculo = perfil['statusVinculo']?.toString();
+      if (uidNutri == null ||
+          uidNutri.isEmpty ||
+          statusVinculo == 'recusado') {
+        throw ApiException('Nenhum nutricionista vinculado.', status: 404);
+      }
+      final nutri = usuarios[uidNutri] as Map<String, dynamic>?;
+      if (nutri == null) {
+        throw ApiException('Nenhum nutricionista vinculado.', status: 404);
+      }
       return _ok(<String, dynamic>{
-        'idUsuario': nutri?['uid'] ?? 'nutri_gabriel',
-        'nome': nutri?['nome'] ?? 'Dr. Gabriel Costa',
+        'idUsuario': nutri['uid'],
+        'nome': nutri['nome'] ?? 'Nutricionista',
+        'email': nutri['email'],
         'papel': 'Nutricionista',
-        'crn': nutri?['crn'] ?? 'CRN-3 45821',
-        'especializacao':
-            nutri?['especializacao'] ?? 'Nutrição Esportiva e Emagrecimento',
+        'crn': nutri['crn'],
+        'especializacao': nutri['especializacao'],
+        'statusVinculo': statusVinculo ?? 'aprovado',
       });
     }
 
@@ -739,17 +815,39 @@ class LocalApiEngine {
 
     // ---------------- CONSULTAS & ORIENTACOES ----------------
     if (m == 'GET' && caminho == '/consultas') {
+      final perfil = _obterOuCriarPerfilAtual(db);
+      final ehNutri = perfil['tipoUsuario'] == 'nutricionista';
+      final meuUid = perfil['uid']?.toString();
+      final uidNutriVinculado = perfil['statusVinculo'] == 'aprovado'
+          ? perfil['idNutricionista']?.toString()
+          : null;
       final consultas = (db['consultas'] as List<dynamic>)
           .whereType<Map<String, dynamic>>()
-          .where((c) => c['status'] != 'concluida' && c['status'] != 'cancelada')
+          .where((c) =>
+              c['status'] != 'concluida' && c['status'] != 'cancelada')
+          .where((c) {
+            if (ehNutri) {
+              return c['uidNutricionista']?.toString() == meuUid;
+            }
+            return c['uidPaciente']?.toString() == meuUid ||
+                (c['status'] == 'disponivel' &&
+                    uidNutriVinculado != null &&
+                    c['uidNutricionista']?.toString() == uidNutriVinculado);
+          })
           .toList();
       return _ok(<String, dynamic>{'consultas': consultas});
     }
 
     if (m == 'GET' && caminho == '/consultas/historico') {
+      final perfil = _obterOuCriarPerfilAtual(db);
+      final ehNutri = perfil['tipoUsuario'] == 'nutricionista';
+      final meuUid = perfil['uid']?.toString();
       final historico = (db['consultas'] as List<dynamic>)
           .whereType<Map<String, dynamic>>()
           .where((c) => c['status'] == 'concluida')
+          .where((c) => ehNutri
+              ? c['uidNutricionista']?.toString() == meuUid
+              : c['uidPaciente']?.toString() == meuUid)
           .toList();
       return _ok(<String, dynamic>{'consultas': historico});
     }
@@ -842,8 +940,21 @@ class LocalApiEngine {
     }
 
     if (m == 'GET' && caminho == '/orientacoes') {
+      final perfil = _obterOuCriarPerfilAtual(db);
+      final ehNutri = perfil['tipoUsuario'] == 'nutricionista';
+      final meuUid = perfil['uid']?.toString();
+      final uidPacFiltro = q['uidPaciente']?.toString();
       final orientacoes = (db['orientacoes'] as List<dynamic>)
           .whereType<Map<String, dynamic>>()
+          .where((o) {
+            if (ehNutri) {
+              if (uidPacFiltro != null && uidPacFiltro.isNotEmpty) {
+                return o['uidPaciente']?.toString() == uidPacFiltro;
+              }
+              return true;
+            }
+            return o['uidPaciente']?.toString() == meuUid;
+          })
           .toList();
       return _ok(<String, dynamic>{'orientacoes': orientacoes});
     }
@@ -892,12 +1003,15 @@ class LocalApiEngine {
     }
 
     if (m == 'GET' && caminho == '/nutricionista/solicitacoes') {
+      final nutri = _obterOuCriarPerfilAtual(db);
+      final uidNutri = nutri['uid']?.toString();
       final usuarios = db['usuarios'] as Map<String, dynamic>;
       final solicitacoes = usuarios.values
           .whereType<Map<String, dynamic>>()
           .where((u) =>
               u['tipoUsuario'] == 'paciente' &&
-              u['statusVinculo'] == 'pendente')
+              u['statusVinculo'] == 'pendente' &&
+              u['idNutricionista']?.toString() == uidNutri)
           .map((u) => _pacienteParaResumo(db, u))
           .toList();
       return _ok(<String, dynamic>{'solicitacoes': solicitacoes});
@@ -1219,7 +1333,7 @@ class LocalApiEngine {
       'nome': nome,
       'email': email,
       'emailVerificado': emailVerificado,
-      'telefone': telefone ?? '(19) 99812-3456',
+      'telefone': telefone ?? '',
       'tipoUsuario': tipoUsuario,
       'crn': crn,
       'especializacao': especializacao,
@@ -1233,17 +1347,17 @@ class LocalApiEngine {
       'assinaturaValidaAte': null,
       'idAssinaturaMp': null,
       'metodoPagamentoAssinatura': 'pix',
-      'idade': ehNutri ? null : 27,
-      'pesoAtual': ehNutri ? null : 68.5,
-      'pesoMeta': ehNutri ? null : 64.0,
-      'altura': ehNutri ? null : 1.68,
-      'genero': ehNutri ? null : 'Feminino',
-      'meta': ehNutri ? null : 'Emagrecimento e Definição',
-      'nivelAtividade': ehNutri ? null : 'Moderado (3 a 5x por semana)',
-      'tipoDieta': ehNutri ? null : 'Equilibrada / Flexível',
-      'idNutricionista': ehNutri ? uid : 'nutri_gabriel',
-      'statusVinculo': 'aprovado',
-      'alimentosFavoritos': <String>['Frango grelhado', 'Aveia', 'Banana'],
+      'idade': null,
+      'pesoAtual': null,
+      'pesoMeta': null,
+      'altura': null,
+      'genero': null,
+      'meta': null,
+      'nivelAtividade': null,
+      'tipoDieta': null,
+      'idNutricionista': ehNutri ? uid : null,
+      'statusVinculo': null,
+      'alimentosFavoritos': <String>[],
       'alimentosRejeitados': <String>[],
       'restricoes': <String>[],
       'condicoesMedicas': <String>[],
@@ -1265,7 +1379,7 @@ class LocalApiEngine {
           perfil['tipoUsuario'] == 'paciente' ? perfil['uid'] : null,
       'idNutricionista': perfil['tipoUsuario'] == 'nutricionista'
           ? perfil['uid']
-          : (perfil['idNutricionista'] ?? 'nutri_gabriel'),
+          : perfil['idNutricionista'],
       'crn': perfil['crn'],
       'nome': perfil['nome'] ?? '',
       'email': perfil['email'] ?? '',
@@ -1336,24 +1450,6 @@ class LocalApiEngine {
     }
   }
 
-  void _vincularDadosIniciaisAoNutricionista(
-    Map<String, dynamic> db,
-    String uidNutri,
-    String nomeNutri,
-  ) {
-    final usuarios = db['usuarios'] as Map<String, dynamic>;
-    for (final u in usuarios.values.whereType<Map<String, dynamic>>()) {
-      if (u['tipoUsuario'] == 'paciente') {
-        u['idNutricionista'] = uidNutri;
-      }
-    }
-    final consultas = db['consultas'] as List<dynamic>;
-    for (final c in consultas.whereType<Map<String, dynamic>>()) {
-      c['uidNutricionista'] = uidNutri;
-      c['nomeNutricionista'] = nomeNutri;
-    }
-  }
-
   List<Map<String, dynamic>> _listarPacientesAtivosDoNutricionista(
     Map<String, dynamic> db,
     String uidNutri,
@@ -1363,10 +1459,8 @@ class LocalApiEngine {
         .whereType<Map<String, dynamic>>()
         .where((u) =>
             u['tipoUsuario'] == 'paciente' &&
-            u['statusVinculo'] != 'pendente' &&
-            u['statusVinculo'] != 'recusado' &&
-            (u['idNutricionista'] == uidNutri ||
-                u['idNutricionista'] == 'nutri_gabriel'))
+            u['statusVinculo'] == 'aprovado' &&
+            u['idNutricionista'] == uidNutri)
         .map((u) => _pacienteParaResumo(db, u))
         .toList();
     return vinculados;
@@ -1378,6 +1472,8 @@ class LocalApiEngine {
   ) {
     final planos = db['planos'] as Map<String, dynamic>;
     final plano = planos[u['uid']] as Map<String, dynamic>?;
+    final grade = plano?['grade'] as Map<String, dynamic>?;
+    final temPlanoAtivo = grade != null && grade.isNotEmpty;
     return <String, dynamic>{
       'uid': u['uid'],
       'nome': u['nome'] ?? '',
@@ -1387,8 +1483,8 @@ class LocalApiEngine {
       'pesoMeta': u['pesoMeta'],
       'altura': u['altura'],
       'genero': u['genero'],
-      'objetivo': u['meta'] ?? 'Emagrecimento saudável',
-      'tipoDieta': u['tipoDieta'] ?? 'Equilibrada',
+      'objetivo': u['meta'] ?? 'Acompanhamento nutricional',
+      'tipoDieta': u['tipoDieta'] ?? 'Personalizada',
       'alimentosFavoritos': u['alimentosFavoritos'] ?? const <String>[],
       'alimentosRejeitados': u['alimentosRejeitados'] ?? const <String>[],
       'restricoes': u['restricoes'] ?? const <String>[],
@@ -1396,8 +1492,10 @@ class LocalApiEngine {
       'compartilharListaCompras': u['compartilharListaCompras'] != false,
       'compartilharHumor': u['compartilharHumor'] != false,
       'observacoesSeguranca': u['observacoesSeguranca'] ?? '',
-      'temPlanoAtivo': plano != null,
-      'nomePlano': plano?['nomePlano'] ?? 'Plano Alimentar Personalizado',
+      'temPlanoAtivo': temPlanoAtivo,
+      'nomePlano': temPlanoAtivo
+          ? (plano?['nomePlano'] ?? 'Plano Alimentar Personalizado')
+          : 'Sem plano alimentar ativo',
     };
   }
 
@@ -1465,35 +1563,14 @@ class LocalApiEngine {
       return planos[uidPaciente] as Map<String, dynamic>;
     }
 
-    final grade = <String, dynamic>{};
-    const padraoDia = <String, String>{
-      'cafeManha': 'rec_1',
-      'lancheManha': 'rec_5',
-      'almoco': 'rec_2',
-      'lancheTarde': 'rec_3',
-      'jantar': 'rec_4',
-      'ceia': 'rec_6',
-    };
-    for (final dia in _diasSemana) {
-      for (final tipo in _tiposRefeicao) {
-        grade['$dia:$tipo'] = <String, dynamic>{
-          'idReceita': padraoDia[tipo] ?? 'rec_1',
-          'horario': _horariosPadrao[tipo] ?? '12:00',
-        };
-      }
-    }
-
     final novoPlano = <String, dynamic>{
       'idPlano': 'plano_$uidPaciente',
       'uidPaciente': uidPaciente,
       'uidNutricionista': uidNutricionista,
-      'nomePlano': 'Plano Equilíbrio & Saúde',
-      'objetivo': 'Emagrecimento e Reeducação Alimentar',
-      'grade': grade,
-      'checks': <String, dynamic>{
-        '${_diaDaSemanaAtual()}:cafeManha': true,
-        '${_diaDaSemanaAtual()}:lancheManha': true,
-      },
+      'nomePlano': 'Plano Alimentar Personalizado',
+      'objetivo': 'Aguardando definição do nutricionista',
+      'grade': <String, dynamic>{},
+      'checks': <String, dynamic>{},
     };
     planos[uidPaciente] = novoPlano;
     return novoPlano;
@@ -1659,41 +1736,11 @@ class LocalApiEngine {
     if (progMap[uidPaciente] is Map<String, dynamic>) {
       return progMap[uidPaciente] as Map<String, dynamic>;
     }
-    final hoje = DateTime.now();
-    final d1 = _formatarData(hoje.subtract(const Duration(days: 21)));
-    final d2 = _formatarData(hoje.subtract(const Duration(days: 14)));
-    final d3 = _formatarData(hoje.subtract(const Duration(days: 7)));
-    final d4 = _formatarData(hoje);
 
     final dados = <String, dynamic>{
-      'coposAgua': 5,
-      'humor': 'bom',
-      'pesagens': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'idProgresso': d4,
-          'peso': pesoBase,
-          'dataRegistro': d4,
-          'aderenciaPlano': 90.0,
-        },
-        <String, dynamic>{
-          'idProgresso': d3,
-          'peso': double.parse((pesoBase + 0.6).toStringAsFixed(1)),
-          'dataRegistro': d3,
-          'aderenciaPlano': 85.0,
-        },
-        <String, dynamic>{
-          'idProgresso': d2,
-          'peso': double.parse((pesoBase + 1.2).toStringAsFixed(1)),
-          'dataRegistro': d2,
-          'aderenciaPlano': 82.0,
-        },
-        <String, dynamic>{
-          'idProgresso': d1,
-          'peso': double.parse((pesoBase + 1.9).toStringAsFixed(1)),
-          'dataRegistro': d1,
-          'aderenciaPlano': 80.0,
-        },
-      ],
+      'coposAgua': 0,
+      'humor': null,
+      'pesagens': <Map<String, dynamic>>[],
     };
     progMap[uidPaciente] = dados;
     return dados;
@@ -1770,8 +1817,8 @@ class LocalApiEngine {
       },
       'historico': pesagens,
       'hoje': <String, dynamic>{
-        'coposAgua': prog['coposAgua'] ?? 5,
-        'humor': prog['humor'] ?? 'bom',
+        'coposAgua': prog['coposAgua'] ?? 0,
+        'humor': prog['humor'],
       },
     };
   }
@@ -1945,115 +1992,17 @@ class LocalApiEngine {
   // =====================================================================
 
   Map<String, dynamic> _criarSeedInicial() {
-    final db = <String, dynamic>{
-      'usuarios': <String, dynamic>{
-        'nutri_gabriel': _criarDocumentoUsuario(
-          uid: 'nutri_gabriel',
-          nome: 'Dr. Gabriel Costa',
-          email: 'gabriel@mvn.com',
-          tipoUsuario: 'nutricionista',
-          crn: 'CRN-3 45821',
-          especializacao: 'Nutrição Esportiva e Emagrecimento',
-        ),
-        'nutri_emilly': _criarDocumentoUsuario(
-          uid: 'nutri_emilly',
-          nome: 'Dra. Emilly Alves',
-          email: 'emilly@mvn.com',
-          tipoUsuario: 'nutricionista',
-          crn: 'CRN-3 51209',
-          especializacao: 'Nutrição Clínica e Funcional',
-        ),
-        'paciente_ana': <String, dynamic>{
-          ..._criarDocumentoUsuario(
-            uid: 'paciente_ana',
-            nome: 'Ana Carolina Silva',
-            email: 'ana@mvn.com',
-            tipoUsuario: 'paciente',
-          ),
-          'idade': 28,
-          'pesoAtual': 68.5,
-          'pesoMeta': 63.0,
-          'altura': 1.66,
-          'meta': 'Emagrecimento saudável',
-          'tipoDieta': 'Equilibrada',
-          'restricoes': <String>['Intolerância leve a lactose'],
-        },
-        'paciente_joao': <String, dynamic>{
-          ..._criarDocumentoUsuario(
-            uid: 'paciente_joao',
-            nome: 'João Pedro Santos',
-            email: 'joao@mvn.com',
-            tipoUsuario: 'paciente',
-          ),
-          'idade': 32,
-          'pesoAtual': 81.2,
-          'pesoMeta': 76.0,
-          'altura': 1.78,
-          'genero': 'Masculino',
-          'meta': 'Hipertrofia e definição',
-          'tipoDieta': 'Hiperproteica',
-          'restricoes': <String>['Sem glúten'],
-        },
-      },
+    return <String, dynamic>{
+      'usuarios': <String, dynamic>{},
       'fotos': <String, dynamic>{},
       'alimentos': _alimentosIniciais(),
       'receitas': _receitasIniciais(),
       'planos': <String, dynamic>{},
       'progresso': <String, dynamic>{},
-      'consultas': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'idConsulta': 'cons_seed_1',
-          'dataHora':
-              DateTime.now().add(const Duration(days: 2, hours: 3)).toIso8601String(),
-          'status': 'confirmada',
-          'uidNutricionista': 'nutri_gabriel',
-          'nomeNutricionista': 'Dr. Gabriel Costa',
-          'uidPaciente': 'paciente_ana',
-          'nomePaciente': 'Ana Carolina Silva',
-          'observacoes': 'Avaliação mensal de bioimpedância e ajustes do cardápio.',
-        },
-        <String, dynamic>{
-          'idConsulta': 'cons_seed_2',
-          'dataHora':
-              DateTime.now().add(const Duration(days: 4, hours: 5)).toIso8601String(),
-          'status': 'disponivel',
-          'uidNutricionista': 'nutri_gabriel',
-          'nomeNutricionista': 'Dr. Gabriel Costa',
-          'observacoes': 'Horário livre para retorno presencial ou teleconsulta.',
-        },
-      ],
-      'orientacoes': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'idOrientacao': 'ori_seed_1',
-          'uidPaciente': 'paciente_ana',
-          'categoria': 'positivo',
-          'texto':
-              'Excelente evolução na última semana! Continue mantendo a meta de 2L de água por dia e priorizando proteínas no café da manhã.',
-          'lida': false,
-          'confirmada': false,
-          'criadoEm':
-              DateTime.now().subtract(const Duration(hours: 6)).toIso8601String(),
-        },
-      ],
-      'mensagens': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'idMensagem': 'msg_seed_1',
-          'idRemetente': 'nutri_gabriel',
-          'idDestinatario': 'paciente_ana',
-          'nomeRemetente': 'Dr. Gabriel Costa',
-          'mensagem':
-              'Olá! Já atualizei seu cardápio desta semana com novas opções práticas para o almoço e lanche da tarde.',
-          'dataHora':
-              DateTime.now().subtract(const Duration(hours: 3)).toIso8601String(),
-        },
-      ],
+      'consultas': <Map<String, dynamic>>[],
+      'orientacoes': <Map<String, dynamic>>[],
+      'mensagens': <Map<String, dynamic>>[],
     };
-
-    _garantirPlanoParaPaciente(db, 'paciente_ana', 'nutri_gabriel');
-    _garantirPlanoParaPaciente(db, 'paciente_joao', 'nutri_gabriel');
-    _garantirProgressoInicial(db, 'paciente_ana', 68.5);
-    _garantirProgressoInicial(db, 'paciente_joao', 81.2);
-    return db;
   }
 
   static List<Map<String, dynamic>> _alimentosIniciais() =>

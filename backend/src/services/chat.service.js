@@ -109,8 +109,10 @@ async function obterContatoPadrao({ usuario, uidPaciente }) {
       uid: nutri.uid,
       idNutricionista: nutri.uid,
       nome: nutri.nome,
+      email: nutri.email,
       crn: nutri.crn,
       especializacao: nutri.especializacao,
+      statusVinculo: usuario.statusVinculo || 'aprovado',
       papel: 'Nutricionista',
     };
   }

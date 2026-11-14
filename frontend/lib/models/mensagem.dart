@@ -7,8 +7,10 @@ class Contato {
     required this.idUsuario,
     required this.nome,
     required this.papel,
+    this.email,
     this.crn,
     this.especializacao,
+    this.statusVinculo,
   });
 
   final String idUsuario;
@@ -17,15 +19,21 @@ class Contato {
   /// Rotulo sob o nome no cabecalho.
   final String papel;
 
+  final String? email;
   final String? crn;
   final String? especializacao;
+  final String? statusVinculo;
+
+  bool get vinculoPendente => statusVinculo == 'pendente';
 
   factory Contato.fromJson(Map<String, dynamic> json) => Contato(
         idUsuario: (json['idUsuario'] ?? json['uid'] ?? '') as String,
         nome: (json['nome'] ?? '') as String,
         papel: (json['papel'] ?? '') as String,
+        email: json['email'] as String?,
         crn: json['crn'] as String?,
         especializacao: json['especializacao'] as String?,
+        statusVinculo: json['statusVinculo'] as String?,
       );
 }
 

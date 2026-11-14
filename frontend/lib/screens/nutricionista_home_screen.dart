@@ -16,6 +16,7 @@ import '../services/chat_service.dart';
 import '../services/api_services.dart';
 import '../services/mvn_services.dart';
 import '../widgets/common.dart';
+import '../widgets/foto_perfil.dart';
 import 'assinatura_nutricionista_screen.dart';
 import 'chat_screen.dart';
 import 'configuracoes_screen.dart';
@@ -229,16 +230,12 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: escuro
-                      ? const Color(0xFF21262D)
-                      : AppColors.paletaLilasSuave,
-                  child: Icon(Icons.medical_services,
-                      color: escuro
-                          ? AppColors.paletaLilasSuave
-                          : AppColors.paletaRoxo,
-                      size: 28),
+                FotoPerfil(
+                  nome: _usuarioAtual.nome,
+                  uid: _usuarioAtual.uid,
+                  onboardingService:
+                      OnboardingService(widget.nutricionistaService.api),
+                  raio: 30,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -1127,21 +1124,12 @@ class _PacientesTabState extends State<PacientesTab>
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: escuro
-                        ? const Color(0xFF21262D)
-                        : AppColors.paletaVerdeSuave,
-                    child: Text(
-                      paciente.nome.isNotEmpty
-                          ? paciente.nome[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: escuro
-                            ? AppColors.paletaLilasSuave
-                            : AppColors.paletaRoxo,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                  FotoPerfil(
+                    nome: paciente.nome,
+                    uid: paciente.uid,
+                    onboardingService:
+                        OnboardingService(widget.nutricionistaService.api),
+                    raio: 22,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1255,19 +1243,12 @@ class _PacientesTabState extends State<PacientesTab>
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: escuro
-                        ? const Color(0xFF21262D)
-                        : AppColors.paletaLilasSuave,
-                    child: Text(
-                      p.nome.isNotEmpty ? p.nome[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        color: escuro
-                            ? AppColors.paletaLilasSuave
-                            : AppColors.paletaRoxo,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  FotoPerfil(
+                    nome: p.nome,
+                    uid: p.uid,
+                    onboardingService:
+                        OnboardingService(widget.nutricionistaService.api),
+                    raio: 22,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1479,6 +1460,41 @@ class _PerfilClinicoScreenState extends State<PerfilClinicoScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          FotoPerfil(
+                            nome: p.nome,
+                            uid: p.uid,
+                            onboardingService: OnboardingService(
+                                widget.nutricionistaService.api),
+                            raio: 26,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.nome,
+                                  style: const TextStyle(
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  p.email,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textoSuave,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
                       const TituloCard(texto: 'Dados clínicos', emoji: '📋'),
                       const SizedBox(height: 12),
                       _linha('Idade', p.idade != null ? '${p.idade} anos' : null),

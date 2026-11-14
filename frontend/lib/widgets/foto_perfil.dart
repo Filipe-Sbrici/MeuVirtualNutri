@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
@@ -45,20 +44,19 @@ class _FotoPerfilState extends State<FotoPerfil> {
   }
 
   Future<Uint8List?> _carregar() async {
+    if (widget.uid.trim().isEmpty) return null;
     try {
-      if (FirebaseAuth.instance.currentUser?.uid != widget.uid) return null;
+      final foto =
+          await widget.onboardingService.carregarFotoPerfil(widget.uid);
+      if (foto == null ||
+          foto['mimeType'] is! String ||
+          foto['dadosBase64'] is! String) {
+        return null;
+      }
+      final base64Str = (foto['dadosBase64'] as String).trim();
+      if (base64Str.isEmpty) return null;
+      return base64Decode(base64Str);
     } catch (_) {
-      return null;
-    }
-    final foto = await widget.onboardingService.carregarFotoPerfil();
-    if (foto == null ||
-        foto['mimeType'] is! String ||
-        foto['dadosBase64'] is! String) {
-      return null;
-    }
-    try {
-      return base64Decode(foto['dadosBase64'] as String);
-    } on FormatException {
       return null;
     }
   }

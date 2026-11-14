@@ -16,9 +16,11 @@ import '../core/theme.dart';
 import '../models/cardapio.dart';
 import '../models/mensagem.dart';
 import '../models/usuario.dart';
+import '../services/api_services.dart';
 import '../services/chat_service.dart';
 import '../services/mvn_services.dart';
 import '../widgets/common.dart';
+import '../widgets/foto_perfil.dart';
 import 'chat_screen.dart';
 
 class MeuNutriScreen extends StatefulWidget {
@@ -40,11 +42,13 @@ class MeuNutriScreen extends StatefulWidget {
 class _MeuNutriScreenState extends State<MeuNutriScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _abas = TabController(length: 3, vsync: this);
+  final _emailNutriController = TextEditingController();
 
   Contato? _nutricionista;
   List<Orientacao> _orientacoes = [];
   List<Consulta> _consultas = [];
   bool _carregando = true;
+  bool _enviandoSolicitacao = false;
   String? _erro;
 
   @override
@@ -56,7 +60,49 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
   @override
   void dispose() {
     _abas.dispose();
+    _emailNutriController.dispose();
     super.dispose();
+  }
+
+  Future<void> _enviarSolicitacaoNutricionista() async {
+    final email = _emailNutriController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informe o e-mail válido do nutricionista.'),
+          backgroundColor: AppColors.vermelho,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _enviandoSolicitacao = true);
+    try {
+      final onboarding = OnboardingService(widget.chatService.api);
+      await onboarding.solicitarNutricionistaPorEmail(email);
+      _emailNutriController.clear();
+      await _carregar();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Solicitação enviada! Aguarde a aprovação do nutricionista.'),
+          backgroundColor: AppColors.verdeEscuro,
+        ),
+      );
+    } on ApiException catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(erro.mensagem),
+          backgroundColor: AppColors.vermelho,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _enviandoSolicitacao = false);
+      }
+    }
   }
 
   Future<void> _carregar() async {
@@ -168,17 +214,109 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
 
   Widget _abaContato() {
     final nutri = _nutricionista;
+    final escuro = Theme.of(context).brightness == Brightness.dark;
+    final corTitulo = escuro ? AppColors.paletaClaro : AppColors.texto;
+    final corSub =
+        escuro ? AppColors.fonteSubtituloClaro : AppColors.textoSuave;
+    final corBorda = escuro ? AppColors.bordaEscura : AppColors.borda;
+
     if (nutri == null) {
-      return const Center(
-        child: Text(
-          'Nenhum nutricionista vinculado.\nRefaca o onboarding para escolher um.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textoSuave, fontSize: 13),
-        ),
+      return ListView(
+        padding: const EdgeInsets.all(AppSizes.telaPadding),
+        children: [
+          MvnCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: escuro
+                            ? const Color(0xFF21262D)
+                            : AppColors.paletaLilasSuave,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person_add_alt_1_rounded,
+                        color: escuro
+                            ? AppColors.paletaLilasSuave
+                            : AppColors.paletaRoxo,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vincular nutricionista',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: corTitulo,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Envie uma solicitação usando o e-mail do seu nutricionista.',
+                            style: TextStyle(fontSize: 12.5, color: corSub),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _emailNutriController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  style: TextStyle(color: corTitulo, fontSize: 14),
+                  decoration: InputDecoration(
+                    labelText: 'E-mail do nutricionista',
+                    hintText: 'exemplo@nutri.com',
+                    labelStyle: TextStyle(color: corSub, fontSize: 13),
+                    hintStyle: TextStyle(color: corSub, fontSize: 13),
+                    prefixIcon: Icon(
+                      Icons.alternate_email_rounded,
+                      color:
+                          escuro ? AppColors.verdeClaro : AppColors.verdeEscuro,
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: escuro
+                        ? const Color(0xFF0D1117)
+                        : AppColors.cinzaCampo,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: corBorda),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: AppColors.verde, width: 1.6),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                BotaoGradiente(
+                  texto: 'Enviar solicitação de vínculo',
+                  icone: Icons.send_rounded,
+                  aoTocar: _enviandoSolicitacao
+                      ? null
+                      : _enviarSolicitacaoNutricionista,
+                  carregando: _enviandoSolicitacao,
+                ),
+              ],
+            ),
+          ),
+        ],
       );
     }
-
-    final escuro = Theme.of(context).brightness == Brightness.dark;
 
     return ListView(
       padding: const EdgeInsets.all(AppSizes.telaPadding),
@@ -187,16 +325,11 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              CircleAvatar(
-                radius: 36,
-                backgroundColor: escuro
-                    ? const Color(0xFF21262D)
-                    : AppColors.paletaLilasSuave,
-                child: Icon(Icons.medical_services,
-                    size: 34,
-                    color: escuro
-                        ? AppColors.paletaLilasSuave
-                        : AppColors.paletaRoxo),
+              FotoPerfil(
+                nome: nutri.nome,
+                uid: nutri.idUsuario,
+                onboardingService: OnboardingService(widget.chatService.api),
+                raio: 36,
               ),
               const SizedBox(height: 12),
               Text(
@@ -204,7 +337,7 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w800,
-                  color: escuro ? AppColors.paletaClaro : AppColors.texto,
+                  color: corTitulo,
                 ),
               ),
               const SizedBox(height: 4),
@@ -225,9 +358,42 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
                   nutri.especializacao!,
                   style: TextStyle(
                     fontSize: 12.5,
-                    color: escuro
-                        ? AppColors.fonteSubtituloClaro
-                        : AppColors.textoSuave,
+                    color: corSub,
+                  ),
+                ),
+              ],
+              if (nutri.vinculoPendente) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.laranja.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.laranja.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.hourglass_top_rounded,
+                        size: 16,
+                        color: AppColors.laranja,
+                      ),
+                      SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'Solicitação pendente de aprovação pelo nutricionista',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.laranja,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -235,25 +401,26 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
           ),
         ),
         const SizedBox(height: AppSizes.espacoEntreCards),
-        Row(
-          children: [
-            Expanded(
-              child: _BotaoAcao(
-                icone: Icons.chat_bubble_outline_rounded,
-                rotulo: 'Chat',
-                aoTocar: _abrirChat,
+        if (!nutri.vinculoPendente)
+          Row(
+            children: [
+              Expanded(
+                child: _BotaoAcao(
+                  icone: Icons.chat_bubble_outline_rounded,
+                  rotulo: 'Chat',
+                  aoTocar: _abrirChat,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _BotaoAcao(
-                icone: Icons.videocam_outlined,
-                rotulo: 'Videochamada',
-                aoTocar: () => _mostrarVideochamada(nutri),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _BotaoAcao(
+                  icone: Icons.videocam_outlined,
+                  rotulo: 'Videochamada',
+                  aoTocar: () => _mostrarVideochamada(nutri),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
   }

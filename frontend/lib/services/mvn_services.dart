@@ -13,9 +13,12 @@ class OnboardingService {
   final ApiClient _api;
   ApiClient get api => _api;
 
-  /// Carrega a foto privada do usuario autenticado atual.
-  Future<Map<String, dynamic>?> carregarFotoPerfil() async {
-    final resposta = await _api.get('/perfil/foto');
+  /// Carrega a foto de perfil do usuario informado (ou do usuario autenticado atual).
+  Future<Map<String, dynamic>?> carregarFotoPerfil([String? uid]) async {
+    final resposta = await _api.get(
+      '/perfil/foto',
+      query: {if (uid != null && uid.isNotEmpty) 'uid': uid},
+    );
     final dados = resposta['dados'];
     final foto = dados is Map ? dados['foto'] : null;
     return foto is Map<String, dynamic> ? foto : null;
@@ -38,10 +41,23 @@ class OnboardingService {
     return lerLista(resposta, 'nutricionistas', NutricionistaResumo.fromJson);
   }
 
-  /// Etapa 1: escolher nutricionista.
-  Future<void> escolherNutricionista(String uidNutricionista) async {
-    await _api.post('/onboarding/nutricionista',
-        corpo: {'uidNutricionista': uidNutricionista});
+  /// Etapa 1: enviar solicitacao de vinculo ao nutricionista por e-mail.
+  Future<void> solicitarNutricionistaPorEmail(String email) async {
+    await _api.post(
+      '/onboarding/nutricionista',
+      corpo: {'email': email.trim().toLowerCase()},
+    );
+  }
+
+  /// Etapa 1: escolher nutricionista (por e-mail ou uid).
+  Future<void> escolherNutricionista(String uidOuEmail) async {
+    final valor = uidOuEmail.trim();
+    if (valor.contains('@')) {
+      await solicitarNutricionistaPorEmail(valor);
+    } else {
+      await _api.post('/onboarding/nutricionista',
+          corpo: {'uidNutricionista': valor});
+    }
   }
 
   /// Etapa 2: dados pessoais.
