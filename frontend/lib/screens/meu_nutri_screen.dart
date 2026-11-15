@@ -16,7 +16,6 @@ import '../core/theme.dart';
 import '../models/cardapio.dart';
 import '../models/mensagem.dart';
 import '../models/usuario.dart';
-import '../services/api_services.dart';
 import '../services/chat_service.dart';
 import '../services/mvn_services.dart';
 import '../widgets/common.dart';
@@ -284,13 +283,13 @@ class _MeuNutriScreenState extends State<MeuNutriScreen>
                     prefixIcon: Icon(
                       Icons.alternate_email_rounded,
                       color:
-                          escuro ? AppColors.verdeClaro : AppColors.verdeEscuro,
+                          escuro ? AppColors.paletaVerde : AppColors.verdeEscuro,
                       size: 20,
                     ),
                     filled: true,
                     fillColor: escuro
                         ? const Color(0xFF0D1117)
-                        : AppColors.cinzaCampo,
+                        : AppColors.cinzaSegmento,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: corBorda),

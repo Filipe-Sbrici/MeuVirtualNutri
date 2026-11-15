@@ -471,14 +471,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   prefixIcon: Icon(
                     Icons.alternate_email_rounded,
                     color: _ehEscuro
-                        ? AppColors.verdeClaro
+                        ? AppColors.paletaVerde
                         : AppColors.verdeEscuro,
                     size: 20,
                   ),
                   filled: true,
                   fillColor: _ehEscuro
                       ? const Color(0xFF0D1117)
-                      : AppColors.cinzaCampo,
+                      : AppColors.cinzaSegmento,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: _corBorda),
@@ -1051,7 +1051,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         isDense: true,
         filled: true,
         fillColor:
-            _ehEscuro ? const Color(0xFF0D1117) : AppColors.cinzaCampo,
+            _ehEscuro ? const Color(0xFF0D1117) : AppColors.cinzaSegmento,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         enabledBorder: OutlineInputBorder(
