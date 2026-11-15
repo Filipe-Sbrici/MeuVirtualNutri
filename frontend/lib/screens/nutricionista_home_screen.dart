@@ -1467,35 +1467,17 @@ class _PerfilClinicoScreenState extends State<PerfilClinicoScreen> {
                             uid: p.uid,
                             onboardingService: OnboardingService(
                                 widget.nutricionistaService.api),
-                            raio: 26,
+                            raio: 22,
                           ),
                           const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  p.nome,
-                                  style: const TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  p.email,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textoSuave,
-                                  ),
-                                ),
-                              ],
+                          const Expanded(
+                            child: TituloCard(
+                              texto: 'Dados clínicos',
+                              emoji: '📋',
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      const TituloCard(texto: 'Dados clínicos', emoji: '📋'),
                       const SizedBox(height: 12),
                       _linha('Idade', p.idade != null ? '${p.idade} anos' : null),
                       _linha('Peso atual', p.pesoAtual != null ? '${p.pesoAtual!.toStringAsFixed(1)} kg' : null),
