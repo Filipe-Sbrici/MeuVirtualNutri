@@ -669,5 +669,6 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
         ],
       ),
     );
+  }
 }
 
