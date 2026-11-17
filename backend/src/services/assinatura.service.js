@@ -3,7 +3,7 @@
  *
  * Regras de negocio:
  *  - Plano Gratuito (padrao): limite de ate 15 pacientes ativos vinculados.
- *  - Plano Pro (assinante): R$ 29,90/mes com pacientes ilimitados.
+ *  - Plano Pro (assinante): R$ 199,00/mes com pacientes ilimitados.
  *  - Quando `MP_ACCESS_TOKEN` esta configurado no `.env`, utiliza a API oficial
  *    de Assinaturas do Mercado Pago (`https://api.mercadopago.com/preapproval`),
  *    vinculando o `uid` do Firebase no campo `external_reference`.
@@ -21,7 +21,7 @@ const COLECAO_ASSINATURAS = 'assinaturas';
 const MP_API_BASE = 'https://api.mercadopago.com';
 
 function precoMensalPadrao() {
-  return config.mercadoPago?.precoMensal || 29.9;
+  return config.mercadoPago?.precoMensal || 199.0;
 }
 
 function limiteGratuitoPadrao() {
@@ -112,7 +112,7 @@ async function obterStatusAssinatura(uidNutricionista) {
 }
 
 /**
- * Cria uma assinatura de R$ 29,90/mes no Mercado Pago (PreApproval) ou em modo
+ * Cria uma assinatura de R$ 199,00/mes no Mercado Pago (PreApproval) ou em modo
  * simulado no Firestore caso MP_ACCESS_TOKEN nao esteja definido.
  */
 async function iniciarAssinatura({

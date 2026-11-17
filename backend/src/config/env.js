@@ -52,7 +52,7 @@ const config = {
     backUrl:
       (process.env.MP_BACK_URL || '').trim() ||
       'https://meuvirtualnutri.app/assinatura-retorno',
-    precoMensal: toFloat(process.env.ASSINATURA_PRECO_MENSAL, 29.9),
+    precoMensal: toFloat(process.env.ASSINATURA_PRECO_MENSAL, 199.0),
     limitePacientesGratuito: toInt(process.env.LIMITE_PACIENTES_GRATUITO, 15),
   },
 };

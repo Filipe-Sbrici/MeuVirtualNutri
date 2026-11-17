@@ -781,7 +781,7 @@ void main() {
     });
 
     testWidgets(
-        '13. Assinatura Mercado Pago (R\$ 29,90/mês) e limite de 15 pacientes nas Configurações do Nutricionista',
+        '13. Assinatura Mercado Pago (R\$ 199,00/mês) e limite de 15 pacientes nas Configurações do Nutricionista',
         (tester) async {
       bool assinouNoMercadoPago = false;
       bool sincronizouAssinatura = false;
@@ -798,7 +798,7 @@ void main() {
                     'planoAssinatura': assinouNoMercadoPago ? 'pro' : 'gratuito',
                     'statusAssinatura': assinouNoMercadoPago ? 'ativa' : 'inativa',
                     'ehAssinante': assinouNoMercadoPago,
-                    'precoMensal': 29.90,
+                    'precoMensal': 199.00,
                     'limitePacientes': assinouNoMercadoPago ? null : 15,
                     'limitePlanoGratuito': 15,
                     'totalPacientesAtivos': 15,
@@ -823,7 +823,7 @@ void main() {
                     'planoAssinatura': 'gratuito',
                     'statusAssinatura': 'pendente',
                     'ehAssinante': false,
-                    'precoMensal': 29.90,
+                    'precoMensal': 199.00,
                     'limitePacientes': 15,
                     'limitePlanoGratuito': 15,
                     'totalPacientesAtivos': 15,
@@ -849,7 +849,7 @@ void main() {
                     'planoAssinatura': 'pro',
                     'statusAssinatura': 'ativa',
                     'ehAssinante': true,
-                    'precoMensal': 29.90,
+                    'precoMensal': 199.00,
                     'limitePacientes': null,
                     'limitePlanoGratuito': 15,
                     'totalPacientesAtivos': 15,
@@ -865,7 +865,7 @@ void main() {
                     'statusAssinatura': 'ativa',
                     'ehAssinante': true,
                     'limitePacientes': null,
-                    'precoAssinatura': 29.90,
+                    'precoAssinatura': 199.00,
                   }
                 }
               }),
@@ -898,16 +898,16 @@ void main() {
 
       expect(find.byType(AssinaturaNutricionistaScreen), findsOneWidget);
       expect(find.text('15 / 15 pacientes'), findsOneWidget);
-      expect(find.text('R\$ 29,90'), findsOneWidget);
+      expect(find.text('R\$ 199,00'), findsOneWidget);
 
-      // Clica para assinar o Plano Pro por R$ 29,90/mês
-      await _rolarAte(tester, find.text('Assinar Plano Pro • R\$ 29,90/mês'));
-      await tester.tap(find.text('Assinar Plano Pro • R\$ 29,90/mês'));
+      // Clica para assinar o Plano Pro por R$ 199,00/mês
+      await _rolarAte(tester, find.text('Assinar Plano Pro • R\$ 199,00/mês'));
+      await tester.tap(find.text('Assinar Plano Pro • R\$ 199,00/mês'));
       await tester.pumpAndSettle();
 
       // Confirma o pagamento no modal do Mercado Pago
-      expect(find.text('Confirmar Pagamento (R\$ 29,90)'), findsOneWidget);
-      await tester.tap(find.text('Confirmar Pagamento (R\$ 29,90)'));
+      expect(find.text('Confirmar Pagamento (R\$ 199,00)'), findsOneWidget);
+      await tester.tap(find.text('Confirmar Pagamento (R\$ 199,00)'));
       await tester.pumpAndSettle();
 
       expect(assinouNoMercadoPago, isTrue);

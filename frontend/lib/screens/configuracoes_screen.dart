@@ -293,7 +293,7 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
               titulo: 'Plano e Assinatura',
               subtitulo: usuario.ehAssinante
                   ? 'Plano Pro Ativo • Pacientes ilimitados (Mercado Pago)'
-                  : 'Até ${usuario.limitePacientes ?? 15} pacientes grátis • Assine Pro por R\$ 29,90/mês',
+                  : 'Até ${usuario.limitePacientes ?? 15} pacientes grátis • Assine Pro por R\$ 199,00/mês',
               corIcone: const Color(0xFF009EE3),
               corFundoIcone: const Color(0xFF009EE3).withValues(alpha: 0.14),
               escuro: escuro,
@@ -669,5 +669,5 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
         ],
       ),
     );
-  }
 }
+

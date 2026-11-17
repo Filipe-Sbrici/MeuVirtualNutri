@@ -24,7 +24,7 @@ class LocalApiEngine {
 
   static const String _chaveBancoLocal = 'mvn_local_api_db_v3';
   static const int _limiteGratuito = 15;
-  static const double _precoPro = 29.90;
+  static const double _precoPro = 199.00;
 
   static const List<String> _diasSemana = <String>[
     'segunda',
@@ -1514,7 +1514,7 @@ class LocalApiEngine {
     );
     if (ativos.length >= _limiteGratuito) {
       throw ApiException(
-        'Limite de $_limiteGratuito pacientes atingido no plano gratuito. Assine o Plano Pro (R\$ 29,90/mês) nas Configurações para liberar pacientes ilimitados.',
+        'Limite de $_limiteGratuito pacientes atingido no plano gratuito. Assine o Plano Pro (R\$ 199,00/mês) nas Configurações para liberar pacientes ilimitados.',
         status: 403,
       );
     }

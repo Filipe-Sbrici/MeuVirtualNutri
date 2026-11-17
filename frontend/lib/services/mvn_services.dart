@@ -549,7 +549,7 @@ class NutricionistaService {
     return StatusAssinaturaNutricionista.fromJson(raw);
   }
 
-  /// Inicia ou ativa a assinatura de R$ 29,90/mes via Mercado Pago.
+  /// Inicia ou ativa a assinatura de R$ 199,00/mes via Mercado Pago.
   Future<(StatusAssinaturaNutricionista, Usuario?)> assinarPlanoPro({
     String metodoPagamento = 'pix',
     bool confirmarImediatamente = false,

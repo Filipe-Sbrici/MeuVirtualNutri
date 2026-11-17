@@ -628,7 +628,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
                       Text(
                         _usuarioAtual.ehAssinante
                             ? 'Pacientes ilimitados liberados pela sua assinatura'
-                            : 'Plano Gratuito (máx. ${_usuarioAtual.limitePacientes ?? 15} pacientes) • Pro R\$ 29,90/mês',
+                            : 'Plano Gratuito (máx. ${_usuarioAtual.limitePacientes ?? 15} pacientes) • Pro R\$ 199,00/mês',
                         style: const TextStyle(
                           fontSize: 11.5,
                           color: AppColors.textoSuave,
@@ -690,7 +690,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
         content: Text(
           mensagemErro ??
               'No Plano Gratuito você pode atender até 15 pacientes ativos.\n\n'
-                  'Assine o Plano Pro por apenas R\$ 29,90/mês via Mercado Pago '
+                  'Assine o Plano Pro por apenas R\$ 199,00/mês via Mercado Pago '
                   'nas Configurações para liberar pacientes ilimitados.',
           style: const TextStyle(fontSize: 13.5),
         ),
@@ -705,7 +705,7 @@ class _NutricionistaHomeScreenState extends State<NutricionistaHomeScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Ver Plano Pro (R\$ 29,90/mês)'),
+            child: const Text('Ver Plano Pro (R\$ 199,00/mês)'),
           ),
         ],
       ),
@@ -887,7 +887,7 @@ class _PacientesTabState extends State<PacientesTab>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            'Limite de 15 pacientes atingido no Plano Gratuito. Assine o Plano Pro (R\$ 29,90/mês) nas Configurações.',
+            'Limite de 15 pacientes atingido no Plano Gratuito. Assine o Plano Pro (R\$ 199,00/mês) nas Configurações.',
           ),
           action: widget.aoAbrirAssinatura != null
               ? SnackBarAction(

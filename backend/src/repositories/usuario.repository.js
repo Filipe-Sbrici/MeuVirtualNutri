@@ -39,7 +39,7 @@ function paraPerfil(uid, dados) {
     statusAssinatura,
     ehAssinante,
     limitePacientes: ehAssinante ? null : (dados.limitePacientes ?? 15),
-    precoAssinatura: dados.precoAssinatura ?? 29.9,
+    precoAssinatura: dados.precoAssinatura ?? 199.0,
     assinaturaValidaAte,
     idAssinaturaMp: dados.idAssinaturaMp ?? null,
     checkoutUrlAssinatura: dados.checkoutUrlAssinatura ?? null,
@@ -117,7 +117,7 @@ async function criarSeNaoExistir(uid, dados) {
           planoAssinatura: 'gratuito',
           statusAssinatura: 'inativa',
           limitePacientes: 15,
-          precoAssinatura: 29.9,
+          precoAssinatura: 199.0,
         }
       : {}),
     onboardingCompleto: ehNutri,

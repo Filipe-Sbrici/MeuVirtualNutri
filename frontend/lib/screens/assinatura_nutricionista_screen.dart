@@ -2,7 +2,7 @@
 ///
 /// Regras de negocio:
 ///  - Sem assinatura (Plano Gratuito): limite de ate 15 pacientes ativos.
-///  - Com assinatura (Plano Pro): R$ 29,90/mes via Mercado Pago, sem limite
+///  - Com assinatura (Plano Pro): R$ 199,00/mes via Mercado Pago, sem limite
 ///    de pacientes.
 ///
 /// Relacionamento:
@@ -110,7 +110,7 @@ class _AssinaturaNutricionistaScreenState
     setState(() => _processando = true);
 
     try {
-      // Inicia a pre-aprovacao no Mercado Pago (R$ 29,90/mes)
+      // Inicia a pre-aprovacao no Mercado Pago (R$ 199,00/mes)
       final (novoStatus, perfilAtualizado) =
           await widget.nutricionistaService.assinarPlanoPro(
         metodoPagamento: _metodoSelecionado,
@@ -282,7 +282,7 @@ class _AssinaturaNutricionistaScreenState
     final checkoutUrl = status.checkoutUrl ??
         'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_id=${status.idAssinaturaMp ?? "mvn_pro"}';
     final codigoPixSimulado =
-        '00020126580014BR.GOV.BCB.PIX0136mercadopago-mvn-pro-${status.idAssinaturaMp ?? "2990"}520400005303986540529.905802BR5917MEU VIRTUAL NUTRI6009SAO PAULO62070503***6304ABCD';
+        '00020126580014BR.GOV.BCB.PIX0136mercadopago-mvn-pro-${status.idAssinaturaMp ?? "19900"}5204000053039865406199.005802BR5917MEU VIRTUAL NUTRI6009SAO PAULO62070503***6304ABCD';
 
     return showModalBottomSheet<bool>(
       context: context,
@@ -344,7 +344,7 @@ class _AssinaturaNutricionistaScreenState
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Plano Pro MVN • R\$ 29,90 / mês',
+                            'Plano Pro MVN • R\$ 199,00 / mês',
                             style: TextStyle(
                               fontSize: 12.5,
                               color: Color(0xFF009EE3),
@@ -511,7 +511,7 @@ class _AssinaturaNutricionistaScreenState
                     onPressed: () => Navigator.of(ctx).pop(true),
                     icon: const Icon(Icons.check_circle_outline_rounded),
                     label: const Text(
-                      'Confirmar Pagamento (R\$ 29,90)',
+                      'Confirmar Pagamento (R\$ 199,00)',
                       style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
@@ -759,7 +759,7 @@ class _AssinaturaNutricionistaScreenState
                     const SizedBox(height: 16),
 
                     // -------------------------------------------------------
-                    // 3. Detalhes e Beneficios do Plano Pro (R$ 29,90/mes)
+                    // 3. Detalhes e Beneficios do Plano Pro (R$ 199,00/mes)
                     // -------------------------------------------------------
                     MvnCard(
                       padding: const EdgeInsets.all(16),
@@ -806,7 +806,7 @@ class _AssinaturaNutricionistaScreenState
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      'R\$ 29,90',
+                                      'R\$ 199,00',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w900,
@@ -886,7 +886,7 @@ class _AssinaturaNutricionistaScreenState
                               id: 'cartao',
                               titulo: 'Cartão de Crédito',
                               subtitulo:
-                                  'Cobrança mensal automática de R\$ 29,90 no cartão',
+                                  'Cobrança mensal automática de R\$ 199,00 no cartão',
                               icone: Icons.credit_card_rounded,
                               escuro: escuro,
                             ),
@@ -928,7 +928,7 @@ class _AssinaturaNutricionistaScreenState
                                 )
                               : const Icon(Icons.rocket_launch_rounded),
                           label: const Text(
-                            'Assinar Plano Pro • R\$ 29,90/mês',
+                            'Assinar Plano Pro • R\$ 199,00/mês',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,

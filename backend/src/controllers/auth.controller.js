@@ -143,7 +143,7 @@ function perfilParaJson(perfil) {
     statusAssinatura: perfil.statusAssinatura ?? 'inativa',
     ehAssinante: Boolean(perfil.ehAssinante),
     limitePacientes: perfil.ehAssinante ? null : (perfil.limitePacientes ?? 15),
-    precoAssinatura: perfil.precoAssinatura ?? 29.9,
+    precoAssinatura: perfil.precoAssinatura ?? 199.0,
     assinaturaValidaAte: perfil.assinaturaValidaAte ?? null,
     idAssinaturaMp: perfil.idAssinaturaMp ?? null,
     metodoPagamentoAssinatura: perfil.metodoPagamentoAssinatura ?? null,

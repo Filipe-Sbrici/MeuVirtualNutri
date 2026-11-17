@@ -22,7 +22,7 @@ class Usuario {
     this.statusAssinatura = 'inativa',
     this.ehAssinante = false,
     this.limitePacientes = 15,
-    this.precoAssinatura = 29.90,
+    this.precoAssinatura = 199.00,
     this.assinaturaValidaAte,
     this.idAssinaturaMp,
     this.metodoPagamentoAssinatura,
@@ -190,7 +190,7 @@ class Usuario {
       ehAssinante: assinante,
       limitePacientes:
           assinante ? null : ((json['limitePacientes'] as num?)?.toInt() ?? 15),
-      precoAssinatura: (json['precoAssinatura'] as num?)?.toDouble() ?? 29.90,
+      precoAssinatura: (json['precoAssinatura'] as num?)?.toDouble() ?? 199.00,
       assinaturaValidaAte: json['assinaturaValidaAte'] as String?,
       idAssinaturaMp: json['idAssinaturaMp'] as String?,
       metodoPagamentoAssinatura: json['metodoPagamentoAssinatura'] as String?,
@@ -287,7 +287,7 @@ class StatusAssinaturaNutricionista {
       planoAssinatura: plano,
       statusAssinatura: status,
       ehAssinante: assinante,
-      precoMensal: (json['precoMensal'] as num?)?.toDouble() ?? 29.90,
+      precoMensal: (json['precoMensal'] as num?)?.toDouble() ?? 199.00,
       limitePacientes:
           assinante ? null : ((json['limitePacientes'] as num?)?.toInt() ?? 15),
       limitePlanoGratuito: limiteGratuito,
